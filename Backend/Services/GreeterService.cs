@@ -7,21 +7,18 @@ using Microsoft.Extensions.Logging;
 
 namespace Backend
 {
-    public class GreeterService : Greeter.GreeterBase
+    public class MapBackendService : MapBackend.MapBackendBase
     {
-        private readonly ILogger<GreeterService> _logger;
+        private readonly ILogger<MapBackendService> _logger;
 
-        public GreeterService(ILogger<GreeterService> logger)
+        public MapBackendService(ILogger<MapBackendService> logger)
         {
             _logger = logger;
         }
 
-        public override Task<HelloReply> SayHello(HelloRequest request, ServerCallContext context)
+        public override Task Connect(IAsyncStreamReader<CommandEnvelope> requestStream, IServerStreamWriter<PositionBatch> responseStream, ServerCallContext context)
         {
-            return Task.FromResult(new HelloReply
-            {
-                Message = "Hello " + request.Name
-            });
+            return base.Connect(requestStream, responseStream, context);
         }
     }
 }

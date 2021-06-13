@@ -33,7 +33,7 @@ namespace Proxy.Hubs
             var channel =
                 new Channel("127.0.0.1", 4040, ChannelCredentials.Insecure); //GrpcChannel.ForAddress(new Uri("https://localhost:4040"));
             
-            var grpcClient = new Greeter.GreeterClient(channel);
+            var grpcClient = new MapBackend.MapBackendClient(channel);
             var conn = grpcClient.Connect();
             State.GrpcConnection = conn;
 
