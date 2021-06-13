@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Abax.SensorProcessor.Contracts.V1;
 using Grpc.Core;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.SignalR;
 
-
-namespace MapBackend.Hubs
+namespace Proxy.Hubs
 {
     class AssetHubState
     {

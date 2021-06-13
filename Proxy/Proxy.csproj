@@ -16,7 +16,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\sensor-processor-messages\sensor-processor-messages.csproj" />
+      <Folder Include="Actors" />
     </ItemGroup>
-
 </Project>

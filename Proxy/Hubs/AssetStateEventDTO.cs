@@ -1,4 +1,4 @@
-namespace MapBackend.Hubs
+namespace Proxy.Hubs
 {
     public class AssetStateEventDTO
     {
