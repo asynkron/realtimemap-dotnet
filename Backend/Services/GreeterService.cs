@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Backend.MQTT;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 
@@ -16,9 +15,19 @@ namespace Backend
             _logger = logger;
         }
 
-        public override Task Connect(IAsyncStreamReader<CommandEnvelope> requestStream, IServerStreamWriter<PositionBatch> responseStream, ServerCallContext context)
+        public override async Task Connect(IAsyncStreamReader<CommandEnvelope> requestStream, IServerStreamWriter<PositionBatch> responseStream, ServerCallContext context)
         {
-            return base.Connect(requestStream, responseStream, context);
+            var positions = await MqttIngress.Start();
+
+            var batches = positions.Buffer(100);
+            await foreach (var batch in batches)
+            {
+                var pb = new PositionBatch()
+                {
+                    Positions = {batch}
+                };
+                await responseStream.WriteAsync(pb);
+            }
         }
     }
 }

@@ -10,9 +10,9 @@ using Newtonsoft.Json;
 
 namespace Backend.MQTT
 {
-    class MqttIngress
+    public static class MqttIngress
     {
-        static async Task<IAsyncEnumerable<Position>> Start()
+        public static async Task<IAsyncEnumerable<Position>> Start()
         {
             var factory = new MqttFactory();
             var mqttClient = factory.CreateMqttClient();
