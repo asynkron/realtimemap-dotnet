@@ -5,13 +5,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Google.Protobuf" Version="3.15.6" />
-      <PackageReference Include="Grpc" Version="2.36.4" />
-      <PackageReference Include="Grpc.Net.Client" Version="2.36.0" />
-      <PackageReference Include="Grpc.Tools" Version="2.36.4">
+      <PackageReference Include="Google.Protobuf" Version="3.17.3" />
+      <PackageReference Include="Grpc" Version="2.38.0" />
+      <PackageReference Include="Grpc.Net.Client" Version="2.38.0" />
+      <PackageReference Include="Grpc.Tools" Version="2.38.0">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="JetBrains.Annotations" Version="2021.1.0-eap01" />
+      <PackageReference Include="JetBrains.Annotations" Version="2021.2.0-eap2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Backend\Backend.csproj" />
     </ItemGroup>
 </Project>

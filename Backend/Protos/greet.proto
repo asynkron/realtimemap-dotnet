@@ -2,7 +2,35 @@ syntax = "proto3";
 
 option csharp_namespace = "Backend";
 
-package greet;
+package backend;
+
+message CommandEnvelope {
+  oneof command {
+    CreateViewport create_viewport = 1;
+    UpdateViewport update_viewport = 2;
+  }
+}
+
+message CreateViewport{
+  string connection_id=1;
+}
+
+message UpdateViewport {
+  
+}
+
+message PositionBatch{
+  repeated Position positions = 1;
+}
+
+message Position {
+  string vehicle_id = 1;
+  uint64 timestamp = 2;
+  float longitude = 3;
+  float latitude = 4;
+}
+
+message Ack {}
 
 // The greeting service definition.
 service Greeter {

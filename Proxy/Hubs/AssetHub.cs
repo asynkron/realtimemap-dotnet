@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Backend;
 using Grpc.Core;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.SignalR;
@@ -8,7 +10,7 @@ namespace Proxy.Hubs
 {
     class AssetHubState
     {
-        public AsyncDuplexStreamingCall<Envelope, AssetStateEvents> GrpcConnection;
+        public AsyncDuplexStreamingCall<CommandEnvelope, PositionBatch> GrpcConnection;
     }
 
     [PublicAPI]
@@ -24,24 +26,24 @@ namespace Proxy.Hubs
             }
         }
 
-        public async IAsyncEnumerable<AssetStateEventDTO[]> Connect()
+        public async IAsyncEnumerable<PositionDTO[]> Connect()
         {
             Console.WriteLine("Connect user session " + ConnectionId);
 
             var channel =
                 new Channel("127.0.0.1", 4040, ChannelCredentials.Insecure); //GrpcChannel.ForAddress(new Uri("https://localhost:4040"));
-
-            var grpcClient = new SensorProcessor.SensorProcessorClient(channel);
+            
+            var grpcClient = new Greeter.GreeterClient(channel);
             var conn = grpcClient.Connect();
             State.GrpcConnection = conn;
 
             Console.WriteLine("Got response...");
 
-            Envelope envelope = new()
+            CommandEnvelope envelope = new()
             {
-                CreateUserSession = new CreateUserSession()
+                CreateViewport = new CreateViewport()
                 {
-                    ConnectionId = ConnectionId
+                    ConnectionId = ConnectionId    
                 }
             };
 
@@ -51,33 +53,24 @@ namespace Proxy.Hubs
 
             var responseStream = State.GrpcConnection.ResponseStream;
 
-            while (await responseStream.MoveNext())
+            await foreach (var positionBatch in responseStream.ReadAllAsync())
             {
-                var assetStateEvents = responseStream.Current.AssetStates.ToArray();
+                if (!positionBatch.Positions.Any())
+                    continue;
 
-                if (assetStateEvents.Any())
-                {
-                    yield return assetStateEvents
-                        .Select(MapAssetStateEventDto)
-                        .ToArray();
-                }
+                var dtoBatch = positionBatch.Positions.Select(MapPositionDto).ToArray();
+                yield return dtoBatch;
             }
         }
 
-        private static AssetStateEventDTO MapAssetStateEventDto(AssetState e)
-        {
-            var position = e.State["position"].Unpack<Position>();
-            return new()
+        private static PositionDTO MapPositionDto(Position position) =>
+            new()
             {
-                AssetId = e.AssetId, AssetType = (int) e.AssetType, Position = new PositionStateDTO
-                {
-                    Latitude = position.Latitude,
-                    Longitude = position.Longitude,
-                    //Timestamp = position..Timestamp,
-                    Course = position.Course,
-                    Speed = position.Speed
-                },
+                Latitude = position.Latitude,
+                Longitude = position.Longitude,
+                Timestamp = position.Timestamp,
+                // Course = position.Course,
+                // Speed = position.Speed
             };
-        }
     }
 }

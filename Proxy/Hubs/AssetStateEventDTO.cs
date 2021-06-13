@@ -1,14 +1,6 @@
 namespace Proxy.Hubs
 {
-    public class AssetStateEventDTO
-    {
-        public string AssetId { get; set; }
-        public int AssetType { get; set; }
-
-        public PositionStateDTO Position { get; set; }
-    }
-
-    public class PositionStateDTO
+    public class PositionDTO
     {
         public double Latitude { get; set; }
         public double Longitude { get; set; }
