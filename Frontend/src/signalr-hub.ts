@@ -1,7 +1,7 @@
 import {HubConnectionBuilder, LogLevel} from '@aspnet/signalr';
 
 const connection = new HubConnectionBuilder()
-  .withUrl('https://localhost:5001/assethub')
+  .withUrl('https://localhost:5001/positionhub')
   .configureLogging(LogLevel.Debug)
   .build();
 

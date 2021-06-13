@@ -44,7 +44,7 @@ namespace Proxy
 
             app.UseEndpoints(endpoints => {
                     endpoints.MapControllers();
-                    endpoints.MapHub<PositionsHub>("/assethub");
+                    endpoints.MapHub<PositionsHub>("/positionhub");
                 }
             );
         }
