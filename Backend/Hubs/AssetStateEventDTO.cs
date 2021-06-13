@@ -6,8 +6,6 @@ namespace MapBackend.Hubs
         public int AssetType { get; set; }
 
         public PositionStateDTO Position { get; set; }
-        public ulong UsageOnTimestamp { get; set; }
-        public ulong UsageOffTimestamp { get; set; }
     }
 
     public class PositionStateDTO
