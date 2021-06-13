@@ -25,8 +25,9 @@ message PositionBatch{
 message Position {
   string vehicle_id = 1;
   uint64 timestamp = 2;
-  float longitude = 3;
-  float latitude = 4;
+  double longitude = 3;
+  double latitude = 4;
+  int32 heading = 5;
 }
 
 message Ack {}

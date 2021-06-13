@@ -10,6 +10,8 @@
 
     <ItemGroup>
         <PackageReference Include="Grpc.AspNetCore" Version="2.34.0" />
+        <PackageReference Include="MQTTnet" Version="3.0.15" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     </ItemGroup>
 
     <ItemGroup>
