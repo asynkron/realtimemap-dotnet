@@ -8,25 +8,25 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Proxy.Hubs
 {
-    class AssetHubState
+    class PositionHubState
     {
         public AsyncDuplexStreamingCall<CommandEnvelope, PositionBatch> GrpcConnection;
     }
 
     [PublicAPI]
-    public class AssetHub : Hub
+    public class PositionsHub : Hub
     {
         public string ConnectionId => $"connection{Context.ConnectionId}";
 
-        private AssetHubState State {
+        private PositionHubState State {
             get {
-                if (!Context.Items.ContainsKey("state")) Context.Items.Add("state", new AssetHubState());
+                if (!Context.Items.ContainsKey("state")) Context.Items.Add("state", new PositionHubState());
 
-                return Context.Items["state"] as AssetHubState;
+                return Context.Items["state"] as PositionHubState;
             }
         }
 
-        public async IAsyncEnumerable<PositionDTO[]> Connect()
+        public async IAsyncEnumerable<PositionDto[]> Connect()
         {
             Console.WriteLine("Connect user session " + ConnectionId);
 
@@ -63,13 +63,13 @@ namespace Proxy.Hubs
             }
         }
 
-        private static PositionDTO MapPositionDto(Position position) =>
+        private static PositionDto MapPositionDto(Position position) =>
             new()
             {
                 Latitude = position.Latitude,
                 Longitude = position.Longitude,
                 Timestamp = position.Timestamp,
-                // Course = position.Course,
+                Heading = position.Heading,
                 // Speed = position.Speed
             };
     }
