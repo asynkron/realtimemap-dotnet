@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import {defineComponent, onMounted} from 'vue'
-import assets, {AssetStateEvent, AssetType} from '../signalr-hub';
+import assets, {PositionDto} from '../signalr-hub';
 import mapboxgl, {GeoJSONSource} from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css'
 import {throttle} from 'lodash';
@@ -15,45 +15,44 @@ const showMarkerLevel = 10;
 const stepsInAnimation = 30;
 const layerUpdateInterval = 5000; //every 5 sec, update the layers
 
-interface AssetPosition {
+//this must have this shape to be compatible with mapbox
+interface VehiclePosition {
   lat: number;
   lng: number;
-  course: number;
+  heading: number;
 }
 
-interface AssetState {
-  assetId: string;
-  assetType: AssetType;
+interface VehicleState {
+  vehicleId: string;
   steps: number;
-  delta: AssetPosition;
-  currentPosition: AssetPosition;
-  speed?: number;
-  nextPosition: AssetPosition;
+  delta: VehiclePosition;
+  currentPosition: VehiclePosition;
+  speed: number;
+  nextPosition: VehiclePosition;
   shouldAnimate: boolean;
   icon: string;
 }
 
-type AssetStates = { [assetId: string]: AssetState };
+type AssetStates = { [vehicleId: string]: VehicleState };
 
-function createAssetFromState(e: AssetStateEvent): AssetState {
+function createAssetFromState(e: PositionDto): VehicleState {
   return {
-    assetId: e.assetId,
-    assetType: e.assetType,
-    speed: e.position.speed,
+    vehicleId: e.vehicleId,
+    speed: 0,
     steps: 0,
-    nextPosition: {lng: e.position.longitude, lat: e.position.latitude, course: e.position.course || 0},
-    currentPosition: {lng: e.position.longitude, lat: e.position.latitude, course: e.position.course || 0},
-    delta: {lat: 0, lng: 0, course: 0},
+    nextPosition: {lng: e.longitude, lat: e.latitude, heading: e.heading},
+    currentPosition: {lng: e.longitude, lat: e.latitude, heading: e.heading},
+    delta: {lat: 0, lng: 0, heading: 0},
     shouldAnimate: false,
     icon: "",
   };
 }
 
-function updateAssetFromEvent(assetStates: AssetStates, assetStateEvent: AssetStateEvent) {
-  const assetState = assetStates[assetStateEvent.assetId];
-  const lng = assetStateEvent.position.longitude - assetState.nextPosition.lng;
-  const lat = assetStateEvent.position.latitude - assetState.nextPosition.lat;
-  let course = (assetStateEvent.position.course || 0) - assetState.nextPosition.course;
+function updateAssetFromEvent(assetStates: AssetStates, positionDto: PositionDto) {
+  const assetState = assetStates[positionDto.vehicleId];
+  const lng = positionDto.longitude - assetState.nextPosition.lng;
+  const lat = positionDto.latitude - assetState.nextPosition.lat;
+  let course = (positionDto.heading) - assetState.nextPosition.heading;
 
   //prevent full rotations when next and current course cross between 0 and 360
   if (course > 180) {
@@ -68,31 +67,25 @@ function updateAssetFromEvent(assetStates: AssetStates, assetStateEvent: AssetSt
   assetState.delta = {
     lng: lng / stepsInAnimation,
     lat: lat / stepsInAnimation,
-    course: course / stepsInAnimation
+    heading: course / stepsInAnimation
   };
   assetState.currentPosition = assetState.nextPosition;
   assetState.nextPosition = {
-    lng: assetStateEvent.position.longitude,
-    lat: assetStateEvent.position.latitude,
-    course: (assetStateEvent.position.course || 0)
+    lng: positionDto.longitude,
+    lat: positionDto.latitude,
+    heading: (positionDto.heading)
   };
-  assetState.shouldAnimate = assetState.delta.lat != 0 || assetState.delta.lng != 0 || assetState.delta.course != 0;
+  assetState.shouldAnimate = assetState.delta.lat != 0 || assetState.delta.lng != 0 || assetState.delta.heading != 0;
 
-
-  if (assetStateEvent.assetType === AssetType.Vehicle) {
-    if ((assetStateEvent.position.speed != undefined && assetStateEvent.position.speed > 0) || assetState.shouldAnimate) {
+    if ((positionDto.speed != undefined && positionDto.speed > 0) || assetState.shouldAnimate) {
       assetState.icon = 'moving';
     } else {
       assetState.icon = 'parked';
     }
-  } else if (assetStateEvent.assetType === AssetType.Equipment) {
-    assetState.icon = 'eq';
-  } else if (assetStateEvent.assetType === AssetType.Mini) {
-    assetState.icon = 'mini';
-  }
+
 }
 
-function mapAssetsToGeoJson(assetStates: AssetStates, predicate: (assetState: AssetState) => boolean) {
+function mapAssetsToGeoJson(assetStates: AssetStates, predicate: (assetState: VehicleState) => boolean) {
   return {
     type: 'FeatureCollection',
     features: Object
@@ -105,10 +98,10 @@ function mapAssetsToGeoJson(assetStates: AssetStates, predicate: (assetState: As
           coordinates: [assetState.currentPosition.lng, assetState.currentPosition.lat],
         },
         properties: {
-          'course': assetState.currentPosition.course,
-          'asset-id': assetState.assetId,
+          'course': assetState.currentPosition.heading,
+          'asset-id': assetState.vehicleId,
           'speed': assetState.speed,
-          'asset-type': assetState.assetType,
+          // 'asset-type': assetState.assetType,
           'icon': assetState.icon,
         }
       }))
@@ -294,7 +287,7 @@ function animateAssetPositions(map: mapboxgl.Map, assetStates: AssetStates) {
 
     assetState.currentPosition.lng += assetState.delta.lng;
     assetState.currentPosition.lat += assetState.delta.lat;
-    assetState.currentPosition.course += assetState.delta.course;
+    assetState.currentPosition.heading += assetState.delta.heading;
     assetState.steps--;
   }
 }
@@ -305,7 +298,7 @@ export default defineComponent({
 
     onMounted(async () => {
 
-      mapboxgl.accessToken = 'pk.eyJ1Ijoicm9nZXJhbHNpbmciLCJhIjoiY2pmNTRwbGtoMGhyZjJ3cGVzeTE2cjJzMiJ9.04ArpQn6vFvZEoARwrpHdw';
+      mapboxgl.accessToken = 'pk.eyJ1Ijoicm9nZXJhc3lua3JvbiIsImEiOiJja3B2bTA1ankxazJnMnZxa2pmNHMyMDN0In0.c_HC7mJd8Xk4C3P9FZRKXQ';
       const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v11',
@@ -363,12 +356,12 @@ export default defineComponent({
       const bounds = map.getBounds();
       const sw = bounds.getSouthWest();
       const ne = bounds.getNorthEast();
-      await assets.connect(sw.lng, sw.lat, ne.lng, ne.lat, assetStateEvent => {
-        if (!assetStates[assetStateEvent.assetId]) {
-          assetStates[assetStateEvent.assetId] = createAssetFromState(assetStateEvent);
+      await assets.connect(sw.lng, sw.lat, ne.lng, ne.lat, positionDto => {
+        if (!assetStates[positionDto.assetId]) {
+          assetStates[positionDto.vehicleId] = createAssetFromState(positionDto);
         }
 
-        updateAssetFromEvent(assetStates, assetStateEvent);
+        updateAssetFromEvent(assetStates, positionDto);
       });
     });
   }

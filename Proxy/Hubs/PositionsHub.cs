@@ -31,7 +31,9 @@ namespace Proxy.Hubs
             Console.WriteLine("Connect user session " + ConnectionId);
 
             var channel =
-                new Channel("127.0.0.1", 4040, ChannelCredentials.Insecure); //GrpcChannel.ForAddress(new Uri("https://localhost:4040"));
+                new Channel("127.0.0.1", 5002, ChannelCredentials.Insecure); //GrpcChannel.ForAddress(new Uri("https://localhost:4040"));
+            
+            Console.WriteLine("Got response");
             
             var grpcClient = new MapBackend.MapBackendClient(channel);
             var conn = grpcClient.Connect();

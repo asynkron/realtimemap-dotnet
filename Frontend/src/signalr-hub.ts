@@ -11,42 +11,37 @@ export enum AssetType {
   Vehicle= 2
 }
 
-export interface AssetStateEvent {
-  assetId: string;
-  assetType: AssetType;
-  position: GpsData;
-}
-
-export interface GpsData{
+export interface PositionDto {
+  vehicleId: string;
   longitude: number;
   latitude: number;
-  timestamp: number;
-  course?: number;
-  speed?: number;
+  heading: number;
+  speed: number;
 }
 
 export default {
   async connect(lng1: number, lat1: number, lng2: number, lat2: number, callback: (value: any) => void) {
 
+    console.log("connecting");
     await connection.start()
+    console.log("connected");
 
     connection
       .stream('Connect', lng1, lat1, lng2, lat2)
       .subscribe({
-        next: (batch: AssetStateEvent[]) => {
+        next: (batch: PositionDto[]) => {
           console.log(`Got batch of events ${batch.length}`);
           for (const e of batch) {
-            if (e.assetType != AssetType.Vehicle) {
-              console.log(e);
-            }
             callback(e);
           }
         },
         complete: () => {
           //pass
+          console.log("signalr completed");
         },
-        error: () => {
+        error: x => {
           //pass
+          console.error("signalr error", x)
         }
       });
   },
