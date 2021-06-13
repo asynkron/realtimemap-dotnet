@@ -14,8 +14,4 @@
       </PackageReference>
       <PackageReference Include="JetBrains.Annotations" Version="2021.1.0-eap01" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Actors" />
-    </ItemGroup>
 </Project>
