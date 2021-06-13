@@ -26,7 +26,7 @@ namespace Proxy.Hubs
             }
         }
 
-        public async IAsyncEnumerable<PositionDto[]> Connect()
+        public async IAsyncEnumerable<PositionsDto> Connect()
         {
             Console.WriteLine("Connect user session " + ConnectionId);
 
@@ -61,7 +61,10 @@ namespace Proxy.Hubs
                     continue;
 
                 var dtoBatch = positionBatch.Positions.Select(MapPositionDto).ToArray();
-                yield return dtoBatch;
+                yield return new PositionsDto
+                {
+                    Positions = dtoBatch,
+                };
             }
         }
 

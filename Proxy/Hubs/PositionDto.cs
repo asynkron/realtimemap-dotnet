@@ -8,4 +8,9 @@ namespace Proxy.Hubs
         public int Heading { get; set; }
         public float? Speed { get; set; }
     }
+
+    public class PositionsDto
+    {
+        public PositionDto[] Positions { get; set; }
+    }
 }

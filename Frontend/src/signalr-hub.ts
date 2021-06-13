@@ -1,15 +1,9 @@
 import {HubConnectionBuilder, LogLevel} from '@aspnet/signalr';
 
 const connection = new HubConnectionBuilder()
-  .withUrl('https://localhost:5001/positionhub')
+  .withUrl('http://localhost:5000/positionhub')
   .configureLogging(LogLevel.Debug)
   .build();
-
-export enum AssetType {
-  Equipment = 0,
-  Mini = 1,
-  Vehicle= 2
-}
 
 export interface PositionDto {
   vehicleId: string;
