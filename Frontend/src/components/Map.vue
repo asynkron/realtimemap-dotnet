@@ -12,7 +12,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import {throttle} from 'lodash';
 
 const showMarkerLevel = 10;
-const stepsInAnimation = 30;
+const stepsInAnimation = 10;
 const layerUpdateInterval = 5000; //every 5 sec, update the layers
 
 //this must have this shape to be compatible with mapbox
@@ -49,26 +49,37 @@ function createAssetFromState(e: PositionDto): VehicleState {
 }
 
 function updateAssetFromEvent(assetStates: AssetStates, positionDto: PositionDto) {
+
   const assetState = assetStates[positionDto.vehicleId];
+  // console.log(positionDto.vehicleId)
+  // console.log(assetState.nextPosition);
+  // console.log(positionDto);
+
   const lng = positionDto.longitude - assetState.nextPosition.lng;
   const lat = positionDto.latitude - assetState.nextPosition.lat;
-  let course = (positionDto.heading) - assetState.nextPosition.heading;
+  let heading = positionDto.heading - assetState.nextPosition.heading;
 
-  //prevent full rotations when next and current course cross between 0 and 360
-  if (course > 180) {
-    course -= 360;
+  if (lng != 0) {
+    console.log(lng, lat)
   }
 
-  if (course < -180) {
-    course += 360;
+
+  //prevent full rotations when next and current course cross between 0 and 360
+  if (heading > 180) {
+    heading -= 360;
+  }
+
+  if (heading < -180) {
+    heading += 360;
   }
 
   assetState.steps = stepsInAnimation;
   assetState.delta = {
     lng: lng / stepsInAnimation,
     lat: lat / stepsInAnimation,
-    heading: course / stepsInAnimation
+    heading: heading / stepsInAnimation
   };
+  //console.log(assetState.delta );
   assetState.currentPosition = assetState.nextPosition;
   assetState.nextPosition = {
     lng: positionDto.longitude,
@@ -202,7 +213,7 @@ function createMapLayers(map: mapboxgl.Map) {
       minzoom: showMarkerLevel,
       layout: {
         'icon-image': ["get", "icon"],
-        "icon-size": ['interpolate', ['linear'], ['zoom'], 9, 0.1, 15, 0.5],
+        "icon-size": ['interpolate', ['linear'], ['zoom'], 9, 0.05, 15, 0.4],
         'icon-allow-overlap': true,
         'icon-rotate': ["get", "course"],
         // 'text-field': ['get', 'asset-id'],
@@ -306,7 +317,7 @@ export default defineComponent({
         zoom: 8
       });
 
-      map.loadImage("/moving.png", (error, image) => {
+      map.loadImage("/bus.png", (error, image) => {
         if (error) throw error;
         map.addImage('moving', image);
       });
@@ -346,7 +357,7 @@ export default defineComponent({
 
         animateAssetPositions(map, assetStates);
         updateAssetLayers(map, assetStates);
-      }, 2000 / stepsInAnimation); //10 seconds per sensor reading, divided by steps
+      }, 100 / stepsInAnimation); //10 seconds per sensor reading, divided by steps
 
       setInterval(() => {
         //extrapolate asset positions

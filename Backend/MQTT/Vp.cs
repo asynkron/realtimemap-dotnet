@@ -6,10 +6,14 @@ namespace Backend.MQTT
     public class Root
     {
         [JsonProperty("VP")]
-        public Vp Vp { get; set; }
+        public Payload VehiclePosition { get; set; }
+        
+        [JsonProperty("DOC")] public Payload DoorsClosed { get; set; }
+        
+        [JsonProperty("DOO")] public Payload DoorsOpen { get; set; }
     }
     
-    public class Vp
+    public class Payload
     {
         [JsonProperty("desi")] public long Desi { get; set; }
 

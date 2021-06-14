@@ -19,7 +19,7 @@ namespace Backend
         {
             var positions = await MqttIngress.Start();
 
-            var batches = positions.Buffer(100);
+            var batches = positions.Buffer(10);
             await foreach (var batch in batches)
             {
                 var pb = new PositionBatch()

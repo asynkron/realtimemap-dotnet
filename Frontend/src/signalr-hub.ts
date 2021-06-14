@@ -5,6 +5,9 @@ const connection = new HubConnectionBuilder()
   .configureLogging(LogLevel.Debug)
   .build();
 
+export interface PositionsDto {
+  positions: PositionDto[];
+}
 export interface PositionDto {
   vehicleId: string;
   longitude: number;
@@ -21,11 +24,11 @@ export default {
     console.log("connected");
 
     connection
-      .stream('Connect', lng1, lat1, lng2, lat2)
+      .stream('Connect')
       .subscribe({
-        next: (batch: PositionDto[]) => {
-          console.log(`Got batch of events ${batch.length}`);
-          for (const e of batch) {
+        next: (batch: PositionsDto) => {
+          console.log(`Got batch of events ${batch.positions.length}`);
+          for (const e of batch.positions) {
             callback(e);
           }
         },

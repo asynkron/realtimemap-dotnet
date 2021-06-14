@@ -75,7 +75,9 @@ namespace Proxy.Hubs
                 Longitude = position.Longitude,
                 Timestamp = position.Timestamp,
                 Heading = position.Heading,
-                // Speed = position.Speed
+                VehicleId = position.VehicleId,
+                Speed = 10,
+                DoorsOpen = position.DoorsOpen
             };
     }
 }

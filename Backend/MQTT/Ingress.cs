@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Text;
@@ -10,6 +11,10 @@ using Newtonsoft.Json;
 
 namespace Backend.MQTT
 {
+    public class VehicleState
+    {
+        public bool DoorsOpen { get; set; }
+    }
     public static class MqttIngress
     {
         public static async Task<IAsyncEnumerable<Position>> Start()
@@ -29,8 +34,9 @@ namespace Backend.MQTT
                 .WithTcpServer("mqtt.hsl.fi", 8883)
                 .Build();
 
-            var x = await mqttClient.ConnectAsync(options);
-            var sub = await mqttClient.SubscribeAsync("/hfp/v2/journey/#");
+            await mqttClient.ConnectAsync(options);
+            await mqttClient.SubscribeAsync("/hfp/v2/journey/#");
+            var state = new ConcurrentDictionary<string, VehicleState>();
             mqttClient.UseApplicationMessageReceivedHandler(async e =>
             {
                 //0/1       /2        /3             /4              /5           /6               /7            /8               /9         /10            /11        /12          /13         /14             /15       /16
@@ -40,17 +46,45 @@ namespace Backend.MQTT
                 var ascii = Encoding.ASCII.GetString(payload);
                 var typed = JsonConvert.DeserializeObject<Root>(ascii);
                 var parts = e.ApplicationMessage.Topic.Split("/");
-                var vehicleId = parts[8];
+                var operatorId = parts[7];
+                var vehicleNumber = parts[8];
 
-                var p = new Position()
+                var vehicleId = operatorId + "." + vehicleNumber;
+
+                var vs = state.GetOrAdd(vehicleId, x => new VehicleState());
+
+                Payload pl = null;
+
+                if (typed.DoorsOpen != null)
                 {
-                    Longitude = typed.Vp.Long,
-                    Latitude = typed.Vp.Lat,
-                    VehicleId = vehicleId,
-                    Heading = (int)typed.Vp.Hdg,
-                };
+                    pl = typed.DoorsOpen;
+                    vs.DoorsOpen = true;
+                }
                 
-                await channel.Writer.WriteAsync(p);
+                if (typed.DoorsClosed != null)
+                {
+                    pl = typed.DoorsClosed;
+                    vs.DoorsOpen = false;
+                }
+
+                if (typed.VehiclePosition != null)
+                {
+                    pl = typed.VehiclePosition;
+                }
+
+                if (pl != null)
+                {
+                    var p = new Position()
+                    {
+                        Longitude = pl.Long,
+                        Latitude = pl.Lat,
+                        VehicleId = vehicleId,
+                        Heading = (int) pl.Hdg,
+                        DoorsOpen = vs.DoorsOpen,
+                    };
+
+                    await channel.Writer.WriteAsync(p);
+                }
                 //Console.WriteLine($"{vehicleId}: {typed.Vp.Lat}, {typed.Vp.Long}, {typed.Vp.Hdg}");
             });
 

@@ -28,6 +28,7 @@ message Position {
   double longitude = 3;
   double latitude = 4;
   int32 heading = 5;
+  bool doors_open = 6;
 }
 
 message Ack {}
