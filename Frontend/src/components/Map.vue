@@ -88,7 +88,11 @@ function updateAssetFromEvent(assetStates: AssetStates, positionDto: PositionDto
   };
   assetState.shouldAnimate = assetState.delta.lat != 0 || assetState.delta.lng != 0 || assetState.delta.heading != 0;
 
-    if ((positionDto.speed != undefined && positionDto.speed > 0) || assetState.shouldAnimate) {
+    if (positionDto.doorsOpen) {
+      //console.log("doors open...")
+      assetState.icon = 'doorsopen';
+    }
+    else if ((positionDto.speed != undefined && positionDto.speed > 0) || assetState.shouldAnimate) {
       assetState.icon = 'moving';
     } else {
       assetState.icon = 'parked';
@@ -322,25 +326,25 @@ export default defineComponent({
         map.addImage('moving', image);
       });
 
-      map.loadImage("/idling.png", (error, image) => {
+      map.loadImage("/doorsopen.png", (error, image) => {
         if (error) throw error;
-        map.addImage('idling', image);
+        map.addImage('doorsopen', image);
       });
-
-      map.loadImage("/parked.png", (error, image) => {
-        if (error) throw error;
-        map.addImage('parked', image);
-      });
-
-      map.loadImage("/mini.png", (error, image) => {
-        if (error) throw error;
-        map.addImage('mini', image);
-      });
-
-      map.loadImage("/eq.png", (error, image) => {
-        if (error) throw error;
-        map.addImage('eq', image);
-      });
+      //
+      // map.loadImage("/parked.png", (error, image) => {
+      //   if (error) throw error;
+      //   map.addImage('parked', image);
+      // });
+      //
+      // map.loadImage("/mini.png", (error, image) => {
+      //   if (error) throw error;
+      //   map.addImage('mini', image);
+      // });
+      //
+      // map.loadImage("/eq.png", (error, image) => {
+      //   if (error) throw error;
+      //   map.addImage('eq', image);
+      // });
 
       const assetStates: AssetStates = {};
       (window as any).assetStates = assetStates;

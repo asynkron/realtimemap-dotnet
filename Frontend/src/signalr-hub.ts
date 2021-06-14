@@ -14,6 +14,7 @@ export interface PositionDto {
   latitude: number;
   heading: number;
   speed: number;
+  doorsOpen: boolean;
 }
 
 export default {
