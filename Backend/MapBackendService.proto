@@ -1,0 +1,10 @@
+syntax = "proto3";
+option csharp_namespace = "Backend";
+import "Messages.proto";
+
+package backend;
+
+
+service MapBackend {
+  rpc Connect (stream CommandEnvelope) returns (stream PositionBatch);
+}

@@ -2,7 +2,16 @@ syntax = "proto3";
 
 option csharp_namespace = "Backend";
 
-package backend;
+message Position {
+  string vehicle_id = 1;
+  uint64 timestamp = 2;
+  double longitude = 3;
+  double latitude = 4;
+  int32 heading = 5;
+  bool doors_open = 6;
+}
+
+message Ack {}
 
 message CommandEnvelope {
   oneof command {
@@ -20,19 +29,4 @@ message UpdateViewport {
 
 message PositionBatch{
   repeated Position positions = 1;
-}
-
-message Position {
-  string vehicle_id = 1;
-  uint64 timestamp = 2;
-  double longitude = 3;
-  double latitude = 4;
-  int32 heading = 5;
-  bool doors_open = 6;
-}
-
-message Ack {}
-
-service MapBackend {
-  rpc Connect (stream CommandEnvelope) returns (stream PositionBatch);
 }

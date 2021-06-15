@@ -1,0 +1,11 @@
+syntax = "proto3";
+option csharp_namespace = "Backend";
+import "Messages.proto";
+
+service VehicleActor {
+  rpc OnPosition (CommandEnvelope) returns (PositionBatch);
+}
+
+service ViewportActor {
+  rpc UpdateViewport (UpdateViewport) returns (Ack);
+}
