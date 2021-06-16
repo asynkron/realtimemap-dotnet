@@ -51,10 +51,15 @@ namespace Backend.MQTT
 
                 var vehicleId = operatorId + "." + vehicleNumber;
 
+                
+                //state should not be handled here, it should be in the respective actor
                 var vs = state.GetOrAdd(vehicleId, x => new VehicleState());
 
                 Payload pl = null;
 
+                //the payload from MQTT here is super weird.
+                //there is a property on the root object which dictates what type of event this is
+                //e.g DOC = doors closed, DOO = doors opened. VP = vehicle position
                 if (typed.DoorsOpen != null)
                 {
                     pl = typed.DoorsOpen;
@@ -83,6 +88,7 @@ namespace Backend.MQTT
                         DoorsOpen = vs.DoorsOpen,
                     };
 
+                    //this should instead forward to vehicle actors
                     await channel.Writer.WriteAsync(p);
                 }
                 //Console.WriteLine($"{vehicleId}: {typed.Vp.Lat}, {typed.Vp.Long}, {typed.Vp.Hdg}");
