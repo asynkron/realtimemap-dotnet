@@ -9,7 +9,7 @@ namespace Backend.Actors
         {
         }
 
-        public override Task<PositionBatch> OnPosition(CommandEnvelope request)
+        public override Task<Ack> OnPosition(Position position)
         {
             throw new System.NotImplementedException();
         }

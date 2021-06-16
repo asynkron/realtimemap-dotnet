@@ -3,7 +3,7 @@ option csharp_namespace = "Backend";
 import "Messages.proto";
 
 service VehicleActor {
-  rpc OnPosition (CommandEnvelope) returns (PositionBatch);
+  rpc OnPosition (Position) returns (Ack);
 }
 
 service ViewportActor {
