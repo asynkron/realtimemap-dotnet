@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Proto;
+using Proto.Cluster;
 
 namespace Backend.Actors
 {
@@ -9,9 +10,15 @@ namespace Backend.Actors
         {
         }
 
-        public override Task<Ack> OnPosition(Position position)
+        public override async Task<Ack> OnPosition(Position position)
         {
-            throw new System.NotImplementedException();
+            
+            //TODO: stuff
+            
+            //broadcast event on all cluster members eventstream
+            Cluster.MemberList.BroadcastEvent(position);
+
+            return new Ack();
         }
     }
 }
