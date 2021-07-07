@@ -1,4 +1,6 @@
 ﻿using System;
+using Backend.Actors;
+using Backend.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -35,21 +37,24 @@ namespace Backend
                 
                 var assetProps = Props
                     .FromProducer(() => new VehicleActorActor((c, _, _) =>
-                        ActivatorUtilities.CreateInstance<VehicleActorBase>(provider, c)));
+                        ActivatorUtilities.CreateInstance<VehicleActor>(provider, c)));
 
                 var viewportProps = Props
                     .FromProducer(() => new ViewportActorActor((c, _, _) =>
-                        ActivatorUtilities.CreateInstance<ViewportActorBase>(provider, c)));
+                        ActivatorUtilities.CreateInstance<ViewportActor>(provider, c)));
 
                 system
                     .WithServiceProvider(provider)
                     .WithRemote(GrpcCoreRemoteConfig.BindToLocalhost())
                     .WithCluster(ClusterConfig
                         .Setup(clusterName, new TestProvider(new TestProviderOptions(),new InMemAgent()), new PartitionIdentityLookup())
-                        .WithClusterKind("VehicleActorActor", assetProps)
-                        .WithClusterKind("ViewportActorActor", viewportProps)
+                        .WithClusterKind("VehicleActor", assetProps)
+                        .WithClusterKind("ViewportActor", viewportProps)
                     )
                     .Cluster().WithPidCacheInvalidation();
+
+                //hack, start cluster. this should be injected into a hosted service instead
+                system.Cluster().StartMemberAsync().GetAwaiter().GetResult();
 
                 return system;
             });
