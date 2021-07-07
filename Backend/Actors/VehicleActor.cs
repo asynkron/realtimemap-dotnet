@@ -12,9 +12,6 @@ namespace Backend.Actors
 
         public override async Task<Ack> OnPosition(Position position)
         {
-            
-            //TODO: stuff
-            
             //broadcast event on all cluster members eventstream
             Cluster.MemberList.BroadcastEvent(position);
 

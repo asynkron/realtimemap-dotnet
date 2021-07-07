@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Backend.Actors;
 using Backend.MQTT;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -17,13 +18,14 @@ namespace Backend.Services
         {
             _logger = logger;
             _cluster = cluster;
+            _ = StartConsumer();
         }
 
-        public override async Task Connect(IAsyncStreamReader<CommandEnvelope> requestStream, IServerStreamWriter<PositionBatch> responseStream, ServerCallContext context)
+        private async Task StartConsumer()
         {
+            await Task.Yield();
             var positions = await MqttIngress.Start();
-
-            var batches = positions.Buffer(10);
+            var batches = positions.Buffer(100);
             await foreach (var batch in batches)
             {
                 var requests = batch
@@ -32,12 +34,23 @@ namespace Backend.Services
                     .ToList();
 
                 await Task.WhenAll(requests);
-                
-                var pb = new PositionBatch()
+            }
+        }
+
+        public override async Task Connect(IAsyncStreamReader<CommandEnvelope> requestStream, IServerStreamWriter<PositionBatch> responseStream, ServerCallContext context)
+        {
+            var props = Props.FromProducer(() => new StreamActor(responseStream));
+            var streamPid = _cluster.System.Root.Spawn(props);
+            try
+            {
+                await foreach (var x in requestStream.ReadAllAsync())
                 {
-                    Positions = {batch}
-                };
-                await responseStream.WriteAsync(pb);
+                    //consume incoming commands here
+                }
+            }
+            finally
+            {
+                await _cluster.System.Root.StopAsync(streamPid);
             }
         }
     }
