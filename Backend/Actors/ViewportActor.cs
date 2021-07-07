@@ -41,9 +41,9 @@ namespace Backend.Actors
         }
 
 
-        public override Task<Ack> UpdateViewport(UpdateViewport request)
+        public override async Task<Ack> UpdateViewport(UpdateViewport request)
         {
-            throw new System.NotImplementedException();
+            return new Ack();
         }
     }
 }

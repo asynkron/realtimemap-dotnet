@@ -1,12 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Proto;
+using Proto.Cluster;
+using Proto.Cluster.Cache;
+using Proto.Cluster.Partition;
+using Proto.Cluster.Testing;
+using Proto.DependencyInjection;
+using Proto.Remote.GrpcCore;
 
 namespace Backend
 {
@@ -17,7 +21,42 @@ namespace Backend
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
+            services.AddSingleton(provider =>
+            {
+                var clusterName = "MyCluster";
+
+                var config = ActorSystemConfig
+                    .Setup()
+                    .WithDeadLetterThrottleCount(3)
+                    .WithDeadLetterThrottleInterval(TimeSpan.FromSeconds(1))
+                    .WithDeveloperSupervisionLogging(false);
+
+                var system = new ActorSystem(config);
+                
+                var assetProps = Props
+                    .FromProducer(() => new VehicleActorActor((c, _, _) =>
+                        ActivatorUtilities.CreateInstance<VehicleActorBase>(provider, c)));
+
+                var viewportProps = Props
+                    .FromProducer(() => new ViewportActorActor((c, _, _) =>
+                        ActivatorUtilities.CreateInstance<ViewportActorBase>(provider, c)));
+
+                system
+                    .WithServiceProvider(provider)
+                    .WithRemote(GrpcCoreRemoteConfig.BindToLocalhost())
+                    .WithCluster(ClusterConfig
+                        .Setup(clusterName, new TestProvider(new TestProviderOptions(),new InMemAgent()), new PartitionIdentityLookup())
+                        .WithClusterKind("VehicleActorActor", assetProps)
+                        .WithClusterKind("ViewportActorActor", viewportProps)
+                    )
+                    .Cluster().WithPidCacheInvalidation();
+
+                return system;
+            });
+
+            services.AddSingleton(provider => provider.GetService<ActorSystem>()!.Cluster());
         }
+        
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
