@@ -1,23 +1,26 @@
+using System;
+using System.Threading.Channels;
 using System.Threading.Tasks;
-using Grpc.Core;
 using Proto;
 
 namespace Backend.Actors
 {
     public class StreamActor : IActor
     {
-        private readonly IServerStreamWriter<PositionBatch> _streamWriter;
+        private readonly Channel<Position> _positions;
 
-        public StreamActor(IServerStreamWriter<PositionBatch> streamWriter)
+        public StreamActor(Channel<Position> positions)
         {
-            _streamWriter = streamWriter;
+            _positions = positions;
         }
-        
+
         public async Task ReceiveAsync(IContext context)
         {
-            if (context.Message is PositionBatch batch)
+            if (context.Message is Position position)
             {
-                await _streamWriter.WriteAsync(batch);
+                Console.WriteLine("Got position " + position);
+                //Apply bounds checks / filtering here
+                await _positions.Writer.WriteAsync(position);
             }
         }
     }

@@ -38,18 +38,13 @@ namespace Backend
                 var assetProps = Props
                     .FromProducer(() => new VehicleActorActor((c, _, _) =>
                         ActivatorUtilities.CreateInstance<VehicleActor>(provider, c)));
-
-                var viewportProps = Props
-                    .FromProducer(() => new ViewportActorActor((c, _, _) =>
-                        ActivatorUtilities.CreateInstance<ViewportActor>(provider, c)));
-
+                
                 system
                     .WithServiceProvider(provider)
                     .WithRemote(GrpcCoreRemoteConfig.BindToLocalhost())
                     .WithCluster(ClusterConfig
                         .Setup(clusterName, new TestProvider(new TestProviderOptions(),new InMemAgent()), new PartitionIdentityLookup())
                         .WithClusterKind("VehicleActor", assetProps)
-                        .WithClusterKind("ViewportActor", viewportProps)
                     )
                     .Cluster().WithPidCacheInvalidation();
 
