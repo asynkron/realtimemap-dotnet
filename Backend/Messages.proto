@@ -4,11 +4,12 @@ option csharp_namespace = "Backend";
 
 message Position {
   string vehicle_id = 1;
-  uint64 timestamp = 2;
-  double longitude = 3;
-  double latitude = 4;
-  int32 heading = 5;
-  bool doors_open = 6;
+  string org_id = 2;
+  uint64 timestamp = 3;
+  double longitude = 4;
+  double latitude = 5;
+  int32 heading = 6;
+  bool doors_open = 7;
 }
 
 message CommandEnvelope {
@@ -19,7 +20,7 @@ message CommandEnvelope {
 }
 
 message CreateViewport{
-  string connection_id=1;
+  string connection_id = 1;
 }
 
 message UpdateViewport {

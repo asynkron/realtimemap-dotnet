@@ -35,16 +35,21 @@ namespace Backend
 
                 var system = new ActorSystem(config);
                 
-                var assetProps = Props
+                var vehicleProps = Props
                     .FromProducer(() => new VehicleActorActor((c, _, _) =>
                         ActivatorUtilities.CreateInstance<VehicleActor>(provider, c)));
+                
+                var organizationProps = Props
+                    .FromProducer(() => new OrganizationActorActor((c, _, _) =>
+                        ActivatorUtilities.CreateInstance<OrganizationActor>(provider, c)));
                 
                 system
                     .WithServiceProvider(provider)
                     .WithRemote(GrpcCoreRemoteConfig.BindToLocalhost())
                     .WithCluster(ClusterConfig
                         .Setup(clusterName, new TestProvider(new TestProviderOptions(),new InMemAgent()), new PartitionIdentityLookup())
-                        .WithClusterKind("VehicleActor", assetProps)
+                        .WithClusterKind("VehicleActor", vehicleProps)
+                        .WithClusterKind("OrganizationActor", organizationProps)
                     )
                     .Cluster().WithPidCacheInvalidation();
 

@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Proto;
 using Proto.Cluster;
@@ -21,6 +22,7 @@ namespace Backend.Actors
             _currentPosition = position;
             
             //broadcast event on all cluster members eventstream
+            _ = Cluster.GetOrganizationActor(position.OrgId).OnPosition(position, CancellationTokens.FromSeconds(1));
             Cluster.MemberList.BroadcastEvent(position);
         }
     }

@@ -6,3 +6,7 @@ import "google/protobuf/empty.proto";
 service VehicleActor {
   rpc OnPosition (Position) returns (google.protobuf.Empty);
 }
+
+service OrganizationActor {
+  rpc OnPosition (Position) returns (google.protobuf.Empty);
+}

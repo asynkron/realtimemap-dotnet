@@ -81,6 +81,7 @@ namespace Backend.MQTT
                 {
                     var p = new Position()
                     {
+                        OrgId = operatorId,
                         Longitude = pl.Long,
                         Latitude = pl.Lat,
                         VehicleId = vehicleId,
