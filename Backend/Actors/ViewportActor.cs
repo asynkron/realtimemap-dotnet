@@ -5,11 +5,11 @@ using Proto;
 
 namespace Backend.Actors
 {
-    public class StreamActor : IActor
+    public class ViewportActor : IActor
     {
         private readonly Channel<Position> _positions;
 
-        public StreamActor(Channel<Position> positions)
+        public ViewportActor(Channel<Position> positions)
         {
             _positions = positions;
         }

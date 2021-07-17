@@ -31,40 +31,47 @@ namespace Backend.Services
             var batches = positions.Buffer(100);
             await foreach (var batch in batches)
             {
-                Console.WriteLine("Got batch from mqtt" + batch.Count);
-                var requests = batch
-                    .Select(m => _cluster
-                        .GetVehicleActor(m.VehicleId).OnPosition(m, CancellationTokens.FromSeconds(1)))
-                    .ToList();
+                try
+                {
+                    Console.WriteLine("Got batch from mqtt" + batch.Count);
+                    var requests = batch
+                        .Select(m => _cluster
+                            .GetVehicleActor(m.VehicleId).OnPosition(m, CancellationTokens.FromSeconds(1)))
+                        .ToList();
 
-                await Task.WhenAll(requests);
+                    await Task.WhenAll(requests);
+                }
+                catch(Exception x)
+                {
+                    _logger.LogError(x, "Mqtt reader failed");
+                }
             }
         }
 
         public override async Task Connect(IAsyncStreamReader<CommandEnvelope> requestStream, IServerStreamWriter<PositionBatch> responseStream, ServerCallContext context)
         {
             var positionsChannel = System.Threading.Channels.Channel.CreateUnbounded<Position>();
-            var props = Props.FromProducer(() => new StreamActor(positionsChannel));
-            var streamPid = _cluster.System.Root.Spawn(props);
-            var sub = _system.EventStream.Subscribe<Position>(_system.Root, streamPid);
+            var props = Props.FromProducer(() => new ViewportActor(positionsChannel));
+            var viewportPid = _cluster.System.Root.Spawn(props);
+            var sub = _system.EventStream.Subscribe<Position>(_system.Root, viewportPid);
 
-            // _ = Task.Run(async () =>
-            // {
-            //     var batches = 
-            //         positionsChannel
-            //         .Reader
-            //         .ReadAllAsync()
-            //         .Buffer(100)
-            //         .Select(x => new PositionBatch
-            //         {
-            //             Positions = {x}
-            //         });
-            //
-            //     await foreach (var batch in batches)
-            //     {
-            //         await responseStream.WriteAsync(batch);
-            //     }
-            // });
+            _ = Task.Run(async () =>
+            {
+                var batches = 
+                    positionsChannel
+                    .Reader
+                    .ReadAllAsync()
+                    .Buffer(100)
+                    .Select(x => new PositionBatch
+                    {
+                        Positions = {x}
+                    });
+            
+                await foreach (var batch in batches)
+                {
+                    await responseStream.WriteAsync(batch);
+                }
+            });
             
             try
             {
@@ -78,7 +85,7 @@ namespace Backend.Services
                 _logger.LogWarning("Request ended...");
                 positionsChannel.Writer.Complete();
                 sub.Unsubscribe();
-                await _cluster.System.Root.StopAsync(streamPid);
+                await _cluster.System.Root.StopAsync(viewportPid);
             }
         }
     }
