@@ -313,7 +313,8 @@ export default defineComponent({
 
     onMounted(async () => {
 
-      mapboxgl.accessToken = 'pk.eyJ1Ijoicm9nZXJhc3lua3JvbiIsImEiOiJja3B2bTA1ankxazJnMnZxa2pmNHMyMDN0In0.c_HC7mJd8Xk4C3P9FZRKXQ';
+      console.error("Add your mapbox token here...");
+      mapboxgl.accessToken = 'pk.TOKEN';
       const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v11',

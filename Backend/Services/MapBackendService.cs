@@ -31,7 +31,7 @@ namespace Backend.Services
         {
             await Task.Yield();
             var positions = await MqttIngress.Start();
-            var batches = positions.Buffer(100);
+            var batches = positions.Buffer(10);
             await foreach (var batch in batches)
             {
                 try
@@ -73,11 +73,12 @@ namespace Backend.Services
                 positionsChannel
                     .Reader
                     .ReadAllAsync()
-                    .Buffer(100)
+                    .Buffer(10)
                     .Select(x => new PositionBatch
                     {
                         Positions = {x}
-                    }).ForEachAwaitAsync(responseStream.WriteAsync);
+                    })
+                    .ForEachAwaitAsync(responseStream.WriteAsync);
 
             try
             {
