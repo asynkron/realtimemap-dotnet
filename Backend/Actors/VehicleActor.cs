@@ -10,12 +10,10 @@ namespace Backend.Actors
         {
         }
 
-        public override async Task<Ack> OnPosition(Position position)
+        public override async Task OnPosition(Position position)
         {
             //broadcast event on all cluster members eventstream
             Cluster.MemberList.BroadcastEvent(position);
-
-            return new Ack();
         }
     }
 }

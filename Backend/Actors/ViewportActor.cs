@@ -41,9 +41,9 @@ namespace Backend.Actors
         }
 
 
-        public override async Task<Ack> UpdateViewport(UpdateViewport request)
+        public override async Task UpdateViewport(UpdateViewport request)
         {
-            return new Ack();
+     
         }
     }
 }

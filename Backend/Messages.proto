@@ -11,8 +11,6 @@ message Position {
   bool doors_open = 6;
 }
 
-message Ack {}
-
 message CommandEnvelope {
   oneof command {
     CreateViewport create_viewport = 1;

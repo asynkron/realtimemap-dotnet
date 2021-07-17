@@ -1,11 +1,12 @@
 syntax = "proto3";
 option csharp_namespace = "Backend";
 import "Messages.proto";
+import "google/protobuf/empty.proto";
 
 service VehicleActor {
-  rpc OnPosition (Position) returns (Ack);
+  rpc OnPosition (Position) returns (google.protobuf.Empty);
 }
 
 service ViewportActor {
-  rpc UpdateViewport (UpdateViewport) returns (Ack);
+  rpc UpdateViewport (UpdateViewport) returns (google.protobuf.Empty);
 }
