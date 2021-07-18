@@ -18,7 +18,6 @@ namespace Backend.Actors
         {
             if (context.Message is Position position)
             {
-                Console.WriteLine("Got position " + position);
                 //Apply bounds checks / filtering here
                 await _positions.Writer.WriteAsync(position);
             }
