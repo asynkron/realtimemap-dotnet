@@ -2,7 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Security.Authentication;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
@@ -18,9 +20,26 @@ namespace Backend.MQTT
         public bool DoorsOpen { get; set; }
     }
 
-    public static class MqttIngress
+    public class MqttIngress : IHostedService
     {
-        public static async Task Start(Cluster cluster)
+        private readonly Cluster _cluster;
+
+        public MqttIngress(Cluster cluster)
+        {
+            _cluster = cluster;
+        }
+
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            await Start(_cluster);
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        private async Task Start(Cluster cluster)
         {
             var state = new ConcurrentDictionary<string, VehicleState>();
 

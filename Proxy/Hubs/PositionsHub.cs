@@ -94,6 +94,7 @@ namespace Proxy.Hubs
             await State.GrpcConnection.RequestStream.WriteAsync(envelope);
         }
 
+        // IMO it would be better to do it with standard HTTP call instead of SignalR
         public async Task<PositionsDto> GetTrail(string assetId)
         {
             var trail = await State.Client.GetTrailAsync(new GetTrailRequest { AssetId = assetId });

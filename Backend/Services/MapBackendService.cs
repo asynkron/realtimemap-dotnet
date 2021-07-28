@@ -27,8 +27,6 @@ namespace Backend.Services
         public override async Task Connect(IAsyncStreamReader<CommandEnvelope> requestStream,
             IServerStreamWriter<PositionBatch> responseStream, ServerCallContext context)
         {
-            await MqttIngress.Start(_cluster);
-
             //this is a channel for all events for this specific request
             var positionsChannel = Channel.CreateUnbounded<Position>();
             var props = Props.FromProducer(() => new ViewportActor(positionsChannel));

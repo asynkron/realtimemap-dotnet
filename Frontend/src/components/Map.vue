@@ -5,11 +5,11 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, onMounted} from 'vue'
-import assets, {PositionDto} from '../signalr-hub';
-import mapboxgl, {GeoJSONSource} from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css'
-import {throttle} from 'lodash';
+import { defineComponent, onMounted } from "vue";
+import assets, { PositionDto } from "../signalr-hub";
+import mapboxgl, { GeoJSONSource } from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { throttle } from "lodash";
 
 const showMarkerLevel = 10;
 const stepsInAnimation = 10;
@@ -40,16 +40,15 @@ function createAssetFromState(e: PositionDto): VehicleState {
     vehicleId: e.vehicleId,
     speed: 0,
     steps: 0,
-    nextPosition: {lng: e.longitude, lat: e.latitude, heading: e.heading},
-    currentPosition: {lng: e.longitude, lat: e.latitude, heading: e.heading},
-    delta: {lat: 0, lng: 0, heading: 0},
+    nextPosition: { lng: e.longitude, lat: e.latitude, heading: e.heading },
+    currentPosition: { lng: e.longitude, lat: e.latitude, heading: e.heading },
+    delta: { lat: 0, lng: 0, heading: 0 },
     shouldAnimate: false,
-    icon: "",
+    icon: ""
   };
 }
 
 function updateAssetFromEvent(assetStates: AssetStates, positionDto: PositionDto) {
-
   const assetState = assetStates[positionDto.vehicleId];
   // console.log(positionDto.vehicleId)
   // console.log(assetState.nextPosition);
@@ -60,9 +59,8 @@ function updateAssetFromEvent(assetStates: AssetStates, positionDto: PositionDto
   let heading = positionDto.heading - assetState.nextPosition.heading;
 
   if (lng != 0) {
-    console.log(lng, lat)
+    console.log(lng, lat);
   }
-
 
   //prevent full rotations when next and current course cross between 0 and 360
   if (heading > 180) {
@@ -84,40 +82,44 @@ function updateAssetFromEvent(assetStates: AssetStates, positionDto: PositionDto
   assetState.nextPosition = {
     lng: positionDto.longitude,
     lat: positionDto.latitude,
-    heading: (positionDto.heading)
+    heading: positionDto.heading
   };
-  assetState.shouldAnimate = assetState.delta.lat != 0 || assetState.delta.lng != 0 || assetState.delta.heading != 0;
+  assetState.shouldAnimate =
+    assetState.delta.lat != 0 || assetState.delta.lng != 0 || assetState.delta.heading != 0;
 
-    if (positionDto.doorsOpen) {
-      //console.log("doors open...")
-      assetState.icon = 'doorsopen';
-    }
-    else if ((positionDto.speed != undefined && positionDto.speed > 0) || assetState.shouldAnimate) {
-      assetState.icon = 'moving';
-    } else {
-      assetState.icon = 'parked';
-    }
-
+  if (positionDto.doorsOpen) {
+    //console.log("doors open...")
+    assetState.icon = "doorsopen";
+  } else if (
+    (positionDto.speed != undefined && positionDto.speed > 0) ||
+    assetState.shouldAnimate
+  ) {
+    assetState.icon = "moving";
+  } else {
+    assetState.icon = "parked";
+  }
 }
 
-function mapAssetsToGeoJson(assetStates: AssetStates, predicate: (assetState: VehicleState) => boolean) {
+function mapAssetsToGeoJson(
+  assetStates: AssetStates,
+  predicate: (assetState: VehicleState) => boolean
+) {
   return {
-    type: 'FeatureCollection',
-    features: Object
-      .values(assetStates)
+    type: "FeatureCollection",
+    features: Object.values(assetStates)
       .filter(predicate)
       .map(assetState => ({
-        type: 'Feature',
+        type: "Feature",
         geometry: {
-          type: 'Point',
-          coordinates: [assetState.currentPosition.lng, assetState.currentPosition.lat],
+          type: "Point",
+          coordinates: [assetState.currentPosition.lng, assetState.currentPosition.lat]
         },
         properties: {
-          'course': assetState.currentPosition.heading,
-          'asset-id': assetState.vehicleId,
-          'speed': assetState.speed,
+          course: assetState.currentPosition.heading,
+          "asset-id": assetState.vehicleId,
+          speed: assetState.speed,
           // 'asset-type': assetState.assetType,
-          'icon': assetState.icon,
+          icon: assetState.icon
         }
       }))
   };
@@ -126,7 +128,7 @@ function mapAssetsToGeoJson(assetStates: AssetStates, predicate: (assetState: Ve
 function updateClusterLayers(map: mapboxgl.Map, assetStates: AssetStates) {
   const data = mapAssetsToGeoJson(assetStates, () => true);
   const b = map.getSource("assets-cluster") as GeoJSONSource;
-  b.setData(data as any)
+  b.setData(data as any);
 }
 
 function updateAssetLayers(map: mapboxgl.Map, assetStates: AssetStates) {
@@ -136,21 +138,23 @@ function updateAssetLayers(map: mapboxgl.Map, assetStates: AssetStates) {
 
   //expand viewport so we ingest things just outside the bounds also.
   const biggerBounds = new mapboxgl.LngLatBounds(
-    {lat: sw.lat - 0.1, lng: sw.lng - 0.1},
-    {lat: ne.lat + 0.1, lng: ne.lng + 0.1});
+    { lat: sw.lat - 0.1, lng: sw.lng - 0.1 },
+    { lat: ne.lat + 0.1, lng: ne.lng + 0.1 }
+  );
 
-  const data = mapAssetsToGeoJson(assetStates, asset => biggerBounds.contains(asset.currentPosition));
+  const data = mapAssetsToGeoJson(assetStates, asset =>
+    biggerBounds.contains(asset.currentPosition)
+  );
   const b = map.getSource("assets") as GeoJSONSource;
-  b.setData(data as any)
+  b.setData(data as any);
 }
 
 function createMapLayers(map: mapboxgl.Map) {
   map.on("load", () => {
-
-    map.addSource('assets-cluster', {
-      type: 'geojson',
+    map.addSource("assets-cluster", {
+      type: "geojson",
       data: {
-        type: 'FeatureCollection',
+        type: "FeatureCollection",
         features: []
       },
       cluster: true,
@@ -158,52 +162,61 @@ function createMapLayers(map: mapboxgl.Map) {
       clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
     });
 
-    map.addSource('assets', {
-      type: 'geojson',
+    map.addSource("assets", {
+      type: "geojson",
       data: {
-        type: 'FeatureCollection',
+        type: "FeatureCollection",
         features: []
-      },
+      }
     });
 
+    map.addSource("asset-route", {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "LineString",
+          coordinates: []
+        }
+      }
+    });
     map.addLayer({
-      id: 'clusters',
-      type: 'circle',
-      source: 'assets-cluster',
-      maxzoom: showMarkerLevel,
-      filter: ['has', 'point_count'],
+      id: "asset-route",
+      type: "line",
+      source: "asset-route",
+      layout: {
+        "line-join": "round",
+        "line-cap": "round"
+      },
       paint: {
-        'circle-color': [
-          'step',
-          ['get', 'point_count'],
-          '#9c313a',
-          100,
-          '#0c7186',
-          750,
-          '#73a824'
-        ],
-        'circle-radius': [
-          'step',
-          ['get', 'point_count'],
-          20,
-          100,
-          30,
-          750,
-          40
-        ]
+        "line-color": "#888",
+        "line-width": 8
       }
     });
 
     map.addLayer({
-      id: 'cluster-count',
-      type: 'symbol',
-      source: 'assets-cluster',
+      id: "clusters",
+      type: "circle",
+      source: "assets-cluster",
       maxzoom: showMarkerLevel,
-      filter: ['has', 'point_count'],
+      filter: ["has", "point_count"],
+      paint: {
+        "circle-color": ["step", ["get", "point_count"], "#9c313a", 100, "#0c7186", 750, "#73a824"],
+        "circle-radius": ["step", ["get", "point_count"], 20, 100, 30, 750, 40]
+      }
+    });
+
+    map.addLayer({
+      id: "cluster-count",
+      type: "symbol",
+      source: "assets-cluster",
+      maxzoom: showMarkerLevel,
+      filter: ["has", "point_count"],
       layout: {
-        'text-field': '{point_count_abbreviated}',
-        'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        'text-size': 12,
+        "text-field": "{point_count_abbreviated}",
+        "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+        "text-size": 12
       },
       paint: {
         "text-color": "#ffffff"
@@ -211,15 +224,15 @@ function createMapLayers(map: mapboxgl.Map) {
     });
 
     map.addLayer({
-      id: 'asset-layer',
-      type: 'symbol',
-      source: 'assets',
+      id: "asset-layer",
+      type: "symbol",
+      source: "assets",
       minzoom: showMarkerLevel,
       layout: {
-        'icon-image': ["get", "icon"],
-        "icon-size": ['interpolate', ['linear'], ['zoom'], 9, 0.05, 15, 0.4],
-        'icon-allow-overlap': true,
-        'icon-rotate': ["get", "course"],
+        "icon-image": ["get", "icon"],
+        "icon-size": ["interpolate", ["linear"], ["zoom"], 9, 0.05, 15, 0.4],
+        "icon-allow-overlap": true,
+        "icon-rotate": ["get", "course"]
         // 'text-field': ['get', 'asset-id'],
         // 'text-variable-anchor': ['top'],
         // 'text-radial-offset': 1.2,
@@ -234,43 +247,56 @@ function createMapLayers(map: mapboxgl.Map) {
       closeOnClick: false
     });
 
-    map.on('mouseenter', 'asset-layer', (e: any) => {
-
-// Change the cursor style as a UI indicator.
-      map.getCanvas().style.cursor = 'pointer';
+    map.on("mouseenter", "asset-layer", (e: any) => {
+      // Change the cursor style as a UI indicator.
+      map.getCanvas().style.cursor = "pointer";
 
       const coordinates = e.features[0].geometry.coordinates.slice();
-      const description = e.features[0].properties['asset-id'];
+      const description = e.features[0].properties["asset-id"];
 
-// Ensure that if the map is zoomed out such that multiple
-// copies of the feature are visible, the popup appears
-// over the copy being pointed to.
+      // Ensure that if the map is zoomed out such that multiple
+      // copies of the feature are visible, the popup appears
+      // over the copy being pointed to.
       while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
         coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
       }
 
-// Populate the popup and set its coordinates
-// based on the feature found.
-      popup.setLngLat(coordinates).setHTML(description).addTo(map);
+      // Populate the popup and set its coordinates
+      // based on the feature found.
+      popup
+        .setLngLat(coordinates)
+        .setHTML(description)
+        .addTo(map);
     });
 
-    map.on('mouseleave', 'asset-layer', function () {
-      map.getCanvas().style.cursor = '';
+    map.on("mouseleave", "asset-layer", function() {
+      map.getCanvas().style.cursor = "";
       popup.remove();
     });
 
-    map.on('click', 'asset-layer', (e: any) => {
+    map.on("click", "asset-layer", (e: any) => {
       const features = map.queryRenderedFeatures(e.point);
-        const feature = features[0];
-        if(feature != null && feature.properties != null) {
-          const assetId = feature.properties['asset-id'];
-          assets.getTrail(assetId, (trail) => {
-            // console.log(trail);
-          });
-        }
-    });
+      const feature = features[0];
+      if (feature != null && feature.properties != null) {
+        const assetId = feature.properties["asset-id"];
+        assets.getTrail(assetId, trail => {
+          const source = {
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "LineString",
+              coordinates: trail.positions.map(x => {
+                return [x.longitude, x.latitude];
+              })
+            }
+          };
 
-  })
+          const b = map.getSource("asset-route") as GeoJSONSource;
+          b.setData(source as any);
+        });
+      }
+    });
+  });
 }
 
 function updateViewport(map: mapboxgl.Map, assetStates: AssetStates) {
@@ -287,20 +313,18 @@ function updateViewport(map: mapboxgl.Map, assetStates: AssetStates) {
 function subscribeToMapEvents(map: mapboxgl.Map, assetStates: AssetStates) {
   const throttledUpdateViewport = throttle(updateViewport, 100);
 
-  map.on('zoomend', () => {
+  map.on("zoomend", () => {
     throttledUpdateViewport(map, assetStates);
   });
 
-  map.on('move', () => {
+  map.on("move", () => {
     throttledUpdateViewport(map, assetStates);
   });
 }
 
 function animateAssetPositions(map: mapboxgl.Map, assetStates: AssetStates) {
-
   const bounds = map.getBounds();
   for (const assetState of Object.values(assetStates)) {
-
     if (assetState.steps <= 0 || !assetState.shouldAnimate) {
       continue;
     }
@@ -320,27 +344,26 @@ function animateAssetPositions(map: mapboxgl.Map, assetStates: AssetStates) {
 
 export default defineComponent({
   name: "Map",
-  setup: function (props: any) {
-
+  setup: function(props: any) {
     onMounted(async () => {
-
       console.error("Add your mapbox token here...");
-      mapboxgl.accessToken = 'pk.token';
+      mapboxgl.accessToken =
+        "pk.token";
       const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v11',
+        container: "map",
+        style: "mapbox://styles/mapbox/streets-v11",
         center: [24.938, 60.169],
         zoom: 8
       });
 
       map.loadImage("/bus.png", (error, image) => {
         if (error) throw error;
-        map.addImage('moving', image);
+        map.addImage("moving", image);
       });
 
       map.loadImage("/doorsopen.png", (error, image) => {
         if (error) throw error;
-        map.addImage('doorsopen', image);
+        map.addImage("doorsopen", image);
       });
       //
       // map.loadImage("/parked.png", (error, image) => {
@@ -407,5 +430,4 @@ body {
   height: 80%;
   width: 50%;
 }
-
 </style>
