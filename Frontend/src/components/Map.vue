@@ -259,6 +259,17 @@ function createMapLayers(map: mapboxgl.Map) {
       popup.remove();
     });
 
+    map.on('click', 'asset-layer', (e: any) => {
+      const features = map.queryRenderedFeatures(e.point);
+        const feature = features[0];
+        if(feature != null && feature.properties != null) {
+          const assetId = feature.properties['asset-id'];
+          assets.getTrail(assetId, (trail) => {
+            // console.log(trail);
+          });
+        }
+    });
+
   })
 }
 
@@ -314,11 +325,11 @@ export default defineComponent({
     onMounted(async () => {
 
       console.error("Add your mapbox token here...");
-      mapboxgl.accessToken = 'pk.TOKEN';
+      mapboxgl.accessToken = 'pk.token';
       const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: [10.844, 59.897],
+        center: [24.938, 60.169],
         zoom: 8
       });
 
@@ -394,7 +405,7 @@ body {
   position: absolute;
   top: 20px;
   height: 80%;
-  width: 100%;
+  width: 50%;
 }
 
 </style>

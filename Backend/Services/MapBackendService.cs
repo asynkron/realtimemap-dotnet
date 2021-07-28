@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Backend.Actors;
 using Backend.MQTT;
@@ -60,6 +61,10 @@ namespace Backend.Services
                 //keep this method alive for as long as the client is connected
                 await foreach (var x in requestStream.ReadAllAsync())
                 {
+                    if (x.CommandCase == CommandEnvelope.CommandOneofCase.UpdateViewport)
+                    {
+                        _cluster.System.Root.Send(viewportPid, x.UpdateViewport);
+                    }
                     //consume incoming commands here
                 }
             }
@@ -71,6 +76,17 @@ namespace Backend.Services
                 sub.Unsubscribe();
                 await _cluster.System.Root.StopAsync(viewportPid);
             }
+        }
+
+        public override async Task<GetTrailResponse> GetTrail(GetTrailRequest request, ServerCallContext context)
+        {
+            var trail = await _cluster
+                .GetVehicleActor(request.AssetId).GetPositionsHistory(new GetPositionsHistoryRequest(), CancellationToken.None);
+
+            return new GetTrailResponse
+            {
+                PositionBatch = trail
+            };
         }
     }
 }

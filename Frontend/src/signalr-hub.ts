@@ -24,6 +24,10 @@ export default {
     await connection.start()
     console.log("connected");
 
+    connection.onclose(() => {
+      console.log('connection closed');
+    })
+
     connection
       .stream('Connect')
       .subscribe({
@@ -44,7 +48,13 @@ export default {
       });
   },
   async setViewport(lng1: number, lat1: number, lng2: number, lat2: number) {
+    console.log('setting viewport', lng1, lat1, lng2, lat2);
     await connection.send('SetViewport', lng1, lat1, lng2, lat2);
+  },
+
+  async getTrail(assetId: string, callback: (value: PositionsDto) => void) {
+    const trail = await connection.invoke('GetTrail', assetId);
+    callback(trail);
   }
 };
 

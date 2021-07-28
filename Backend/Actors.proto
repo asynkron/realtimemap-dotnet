@@ -5,6 +5,7 @@ import "google/protobuf/empty.proto";
 
 service VehicleActor {
   rpc OnPosition (Position) returns (google.protobuf.Empty);
+  rpc GetPositionsHistory(GetPositionsHistoryRequest) returns (PositionBatch);
 }
 
 service OrganizationActor {

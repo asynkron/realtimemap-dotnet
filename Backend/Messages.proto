@@ -12,6 +12,13 @@ message Position {
   bool doors_open = 7;
 }
 
+message Viewport {
+  double lat1 = 1;
+  double lng1 = 2;
+  double lat2 = 3;
+  double lng2 = 4;
+}
+
 message CommandEnvelope {
   oneof command {
     CreateViewport create_viewport = 1;
@@ -24,8 +31,12 @@ message CreateViewport{
 }
 
 message UpdateViewport {
+  Viewport viewport = 1;
 }
 
 message PositionBatch{
   repeated Position positions = 1;
+}
+
+message GetPositionsHistoryRequest {
 }
