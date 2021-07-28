@@ -30,6 +30,8 @@
     "eslint": "^6.7.2",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-vue": "^7.0.0-0",
+    "eslint-plugin-prettier-vue": "^3.1.0",
+    "eslint-config-prettier": "^5.1.0",
     "typescript": "~3.9.3"
   }
 }
