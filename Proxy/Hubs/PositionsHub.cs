@@ -75,7 +75,7 @@ namespace Proxy.Hubs
             }
         }
 
-        public async Task SetViewport(double lng1, double lat1, double lng2, double lat2)
+        public async Task SetViewport(double swLng, double swLat, double neLng, double neLat)
         {
             CommandEnvelope envelope = new()
             {
@@ -83,10 +83,8 @@ namespace Proxy.Hubs
                 {
                     Viewport = new Viewport
                     {
-                        Lat1 = lat1,
-                        Lat2 = lat2,
-                        Lng1 = lng1,
-                        Lng2 = lng2
+                        SouthWest = new GeoPoint(swLng, swLat),
+                        NorthEast = new GeoPoint(neLng, neLat)
                     }
                 }
             };

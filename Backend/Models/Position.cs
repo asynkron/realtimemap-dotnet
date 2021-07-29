@@ -5,10 +5,15 @@
         public bool IsWithinViewport(Viewport viewport)
         {
             // naive implementation, ignores edge cases
-            return this.Longitude >= viewport.Lng1 &&
-                   this.Longitude <= viewport.Lng2 &&
-                   this.Latitude >= viewport.Lat1 &&
-                   this.Latitude <= viewport.Lat2;
+            if (viewport.SouthWest is null || viewport.NorthEast is null)
+            {
+                return false;
+            }
+
+            return this.Longitude >= viewport.SouthWest.Longitude &&
+                   this.Latitude >= viewport.SouthWest.Longitude &&
+                   this.Longitude <= viewport.NorthEast.Longitude &&
+                   this.Latitude <= viewport.NorthEast.Latitude;
         }
     }
 }

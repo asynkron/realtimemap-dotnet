@@ -17,20 +17,20 @@ const layerUpdateInterval = 5000 //every 5 sec, update the layers
 
 //this must have this shape to be compatible with mapbox
 interface VehiclePosition {
-  lat: number
-  lng: number
-  heading: number
+  lat: number;
+  lng: number;
+  heading: number;
 }
 
 interface VehicleState {
-  vehicleId: string
-  steps: number
-  delta: VehiclePosition
-  currentPosition: VehiclePosition
-  speed: number
-  nextPosition: VehiclePosition
-  shouldAnimate: boolean
-  icon: string
+  vehicleId: string;
+  steps: number;
+  delta: VehiclePosition;
+  currentPosition: VehiclePosition;
+  speed: number;
+  nextPosition: VehiclePosition;
+  shouldAnimate: boolean;
+  icon: string;
 }
 
 type AssetStates = { [vehicleId: string]: VehicleState }
@@ -113,7 +113,7 @@ function mapAssetsToGeoJson(
     type: 'FeatureCollection',
     features: Object.values(assetStates)
       .filter(predicate)
-      .map((assetState) => ({
+      .map(assetState => ({
         type: 'Feature',
         geometry: {
           type: 'Point',
@@ -150,7 +150,7 @@ function updateAssetLayers(map: mapboxgl.Map, assetStates: AssetStates) {
     { lat: ne.lat + 0.1, lng: ne.lng + 0.1 }
   )
 
-  const data = mapAssetsToGeoJson(assetStates, (asset) =>
+  const data = mapAssetsToGeoJson(assetStates, asset =>
     biggerBounds.contains(asset.currentPosition)
   )
   const b = map.getSource('assets') as GeoJSONSource
@@ -279,10 +279,13 @@ function createMapLayers(map: mapboxgl.Map) {
 
       // Populate the popup and set its coordinates
       // based on the feature found.
-      popup.setLngLat(coordinates).setHTML(description).addTo(map)
+      popup
+        .setLngLat(coordinates)
+        .setHTML(description)
+        .addTo(map)
     })
 
-    map.on('mouseleave', 'asset-layer', function () {
+    map.on('mouseleave', 'asset-layer', function() {
       map.getCanvas().style.cursor = ''
       popup.remove()
     })
@@ -292,13 +295,13 @@ function createMapLayers(map: mapboxgl.Map) {
       const feature = features[0]
       if (feature != null && feature.properties != null) {
         const assetId = feature.properties['asset-id']
-        assets.getTrail(assetId, (trail) => {
+        assets.getTrail(assetId, trail => {
           const source = {
             type: 'Feature',
             properties: {},
             geometry: {
               type: 'LineString',
-              coordinates: trail.positions.map((x) => {
+              coordinates: trail.positions.map(x => {
                 return [x.longitude, x.latitude]
               }),
             },
@@ -357,10 +360,10 @@ function animateAssetPositions(map: mapboxgl.Map, assetStates: AssetStates) {
 
 export default defineComponent({
   name: 'Map',
-  setup: function (props: any) {
+  setup: function(props: any) {
     onMounted(async () => {
       console.error('Add your mapbox token here...')
-      mapboxgl.accessToken = 'pk.token'
+      mapboxgl.accessToken = 'pk.eyJ1IjoiamFrdWIyNTY0ODk2IiwiYSI6ImNrZDVwY2N3bjBqOTQyc256OGF2Z2Q5ZnkifQ.pgbKbR8SewkfHsLPPgWYEg'
       const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v11',
@@ -418,7 +421,7 @@ export default defineComponent({
       const bounds = map.getBounds()
       const sw = bounds.getSouthWest()
       const ne = bounds.getNorthEast()
-      await assets.connect(sw.lng, sw.lat, ne.lng, ne.lat, (positionDto) => {
+      await assets.connect(sw.lng, sw.lat, ne.lng, ne.lat, positionDto => {
         if (!assetStates[positionDto.assetId]) {
           assetStates[positionDto.vehicleId] = createAssetFromState(positionDto)
         }

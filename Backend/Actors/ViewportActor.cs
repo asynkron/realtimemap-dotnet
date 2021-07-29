@@ -36,10 +36,7 @@ namespace Backend.Actors
 
         private void SetViewport(Viewport viewport)
         {
-            _viewport.Lat1 = viewport.Lat1;
-            _viewport.Lat2 = viewport.Lat2;
-            _viewport.Lng1 = viewport.Lng1;
-            _viewport.Lng2 = viewport.Lng2;
+            _viewport.MergeFrom(viewport);
         }
 
 

@@ -12,11 +12,14 @@ message Position {
   bool doors_open = 7;
 }
 
+message GeoPoint {
+ double longitude = 1;
+ double latitude = 2;
+}
+
 message Viewport {
-  double lat1 = 1;
-  double lng1 = 2;
-  double lat2 = 3;
-  double lng2 = 4;
+  GeoPoint south_west = 1;
+  GeoPoint north_east = 2;
 }
 
 message CommandEnvelope {
