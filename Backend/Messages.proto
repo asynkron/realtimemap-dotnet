@@ -12,6 +12,16 @@ message Position {
   bool doors_open = 7;
 }
 
+message GeoPoint {
+ double longitude = 1;
+ double latitude = 2;
+}
+
+message Viewport {
+  GeoPoint south_west = 1;
+  GeoPoint north_east = 2;
+}
+
 message CommandEnvelope {
   oneof command {
     CreateViewport create_viewport = 1;
@@ -24,8 +34,12 @@ message CreateViewport{
 }
 
 message UpdateViewport {
+  Viewport viewport = 1;
 }
 
 message PositionBatch{
   repeated Position positions = 1;
+}
+
+message GetPositionsHistoryRequest {
 }

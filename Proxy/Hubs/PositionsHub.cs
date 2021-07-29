@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Backend;
 using Grpc.Core;
 using JetBrains.Annotations;
@@ -10,6 +11,7 @@ namespace Proxy.Hubs
 {
     class PositionHubState
     {
+        public MapBackend.MapBackendClient Client;
         public AsyncDuplexStreamingCall<CommandEnvelope, PositionBatch> GrpcConnection;
     }
 
@@ -18,8 +20,10 @@ namespace Proxy.Hubs
     {
         public string ConnectionId => $"connection{Context.ConnectionId}";
 
-        private PositionHubState State {
-            get {
+        private PositionHubState State
+        {
+            get
+            {
                 if (!Context.Items.ContainsKey("state")) Context.Items.Add("state", new PositionHubState());
 
                 return Context.Items["state"] as PositionHubState;
@@ -31,12 +35,15 @@ namespace Proxy.Hubs
             Console.WriteLine("Connect user session " + ConnectionId);
 
             var channel =
-                new Channel("127.0.0.1", 5002, ChannelCredentials.Insecure); //GrpcChannel.ForAddress(new Uri("https://localhost:4040"));
-            
+                new Channel("127.0.0.1", 5002,
+                    ChannelCredentials.Insecure); //GrpcChannel.ForAddress(new Uri("https://localhost:4040"));
+
             Console.WriteLine("Got response");
-            
+
             var grpcClient = new MapBackend.MapBackendClient(channel);
             var conn = grpcClient.Connect();
+            
+            State.Client = grpcClient;
             State.GrpcConnection = conn;
 
             Console.WriteLine("Got response...");
@@ -45,7 +52,7 @@ namespace Proxy.Hubs
             {
                 CreateViewport = new CreateViewport()
                 {
-                    ConnectionId = ConnectionId    
+                    ConnectionId = ConnectionId
                 }
             };
 
@@ -66,6 +73,36 @@ namespace Proxy.Hubs
                     Positions = dtoBatch,
                 };
             }
+        }
+
+        public async Task SetViewport(double swLng, double swLat, double neLng, double neLat)
+        {
+            CommandEnvelope envelope = new()
+            {
+                UpdateViewport = new UpdateViewport
+                {
+                    Viewport = new Viewport
+                    {
+                        SouthWest = new GeoPoint(swLng, swLat),
+                        NorthEast = new GeoPoint(neLng, neLat)
+                    }
+                }
+            };
+
+            await State.GrpcConnection.RequestStream.WriteAsync(envelope);
+        }
+
+        // IMO it would be better to do it with standard HTTP call instead of SignalR
+        public async Task<PositionsDto> GetTrail(string assetId)
+        {
+            var trail = await State.Client.GetTrailAsync(new GetTrailRequest { AssetId = assetId });
+
+            var positions = trail.PositionBatch.Positions.Select(MapPositionDto).ToArray();
+
+            return new PositionsDto
+            {
+                Positions = positions
+            };
         }
 
         private static PositionDto MapPositionDto(Position position) =>

@@ -1,5 +1,6 @@
 ﻿using System;
 using Backend.Actors;
+using Backend.MQTT;
 using Backend.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -60,6 +61,8 @@ namespace Backend
             });
 
             services.AddSingleton(provider => provider.GetService<ActorSystem>()!.Cluster());
+
+            services.AddHostedService<MqttIngress>();
         }
         
 
