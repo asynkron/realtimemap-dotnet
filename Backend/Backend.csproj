@@ -5,6 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="GeoCoordinate.NetCore" Version="1.0.0.1" />
         <PackageReference Include="Grpc.AspNetCore" Version="2.34.0" />
         <PackageReference Include="MQTTnet" Version="3.0.16" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />

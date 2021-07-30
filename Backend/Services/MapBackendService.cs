@@ -2,7 +2,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Backend.Actors;
-using Backend.MQTT;
+using Backend.Models;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Proto;
@@ -30,11 +30,16 @@ namespace Backend.Services
             //this is a channel for all events for this specific request
             var positionsChannel = Channel.CreateUnbounded<Position>();
             var props = Props.FromProducer(() => new ViewportActor(positionsChannel));
+
+            var helsinkiAirportLocation = new GeoPoint(24.96907, 60.31146);
+            var geofenceProps = Props.FromProducer(() => new GeofenceActor("Helsinki Airport", new CircularGeofence(helsinkiAirportLocation, 5000)));
+            
             //this is out viewport actor for this request
             var viewportPid = _cluster.System.Root.Spawn(props);
+            var geofencePid = _cluster.System.Root.Spawn(geofenceProps);
 
             //subscribe to all position events, so that our viewport actor receives all those positions
-            var sub = _system.EventStream.Subscribe<Position>(_system.Root, viewportPid);
+            var sub = _system.EventStream.Subscribe<Position>(_system.Root, viewportPid, geofencePid);
 
             //create a pipeline that reads from the position channel
             //buffers the positions up to X positions
@@ -73,6 +78,7 @@ namespace Backend.Services
                 positionsChannel.Writer.Complete();
                 sub.Unsubscribe();
                 await _cluster.System.Root.StopAsync(viewportPid);
+                await _cluster.System.Root.StopAsync(geofencePid);
             }
         }
 
