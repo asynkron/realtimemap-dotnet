@@ -8,14 +8,14 @@ namespace Backend.Actors
     public class VehicleActor : VehicleActorBase
     {
         private Position? _currentPosition;
-        private List<Position> _positionsHistory;
+        private readonly List<Position> _positionsHistory;
         
         public VehicleActor(IContext context) : base(context)
         {
             _positionsHistory = new List<Position>();
         }
 
-        public override async Task OnPosition(Position position)
+        public override Task OnPosition(Position position)
         {
             //if (position.Timestamp > _currentPosition?.Timestamp)
             //{
@@ -28,6 +28,8 @@ namespace Backend.Actors
             //broadcast event on all cluster members eventstream
             _ = Cluster.GetOrganizationActor(position.OrgId).OnPosition(position, CancellationTokens.FromSeconds(1));
             Cluster.MemberList.BroadcastEvent(position);
+
+            return Task.CompletedTask;
         }
 
         public override Task<PositionBatch> GetPositionsHistory(GetPositionsHistoryRequest request)

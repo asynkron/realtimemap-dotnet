@@ -86,5 +86,11 @@ namespace Backend.Services
                 PositionBatch = trail
             };
         }
+
+        public override async Task<GetGeofencesResponse> GetOrganizationGeofences(GetGeofencesRequest request, ServerCallContext context)
+        {
+            return await _cluster.GetOrganizationActor(request.OrgId)
+                .GetGeofences(request, CancellationToken.None);
+        }
     }
 }

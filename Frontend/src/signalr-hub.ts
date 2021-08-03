@@ -58,9 +58,4 @@ export default {
   ) {
     await connection.send('SetViewport', swLng, swLat, neLng, neLat)
   },
-
-  async getTrail(assetId: string, callback: (value: PositionsDto) => void) {
-    const trail = await connection.invoke('GetTrail', assetId)
-    callback(trail)
-  },
 }
