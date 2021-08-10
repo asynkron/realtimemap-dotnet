@@ -137,7 +137,9 @@ function mapAssetsToGeoJson(
 function updateClusterLayers(map: mapboxgl.Map, assetStates: AssetStates) {
   const data = mapAssetsToGeoJson(assetStates, () => true);
   const b = map.getSource('assets-cluster') as GeoJSONSource;
-  b.setData(data as any);
+  if (b != null) {
+    b.setData(data as any);
+  }
 }
 
 function updateAssetLayers(map: mapboxgl.Map, assetStates: AssetStates) {
@@ -427,7 +429,10 @@ export default defineComponent({
 
         updateAssetFromEvent(assetStates, positionDto);
       });
-      await assets.setViewport(sw.lng, sw.lat, ne.lng, ne.lat);
+      setTimeout(
+        async () => await assets.setViewport(sw.lng, sw.lat, ne.lng, ne.lat),
+        500
+      );
     });
   },
 });
@@ -440,9 +445,9 @@ body {
 }
 
 #map {
-  position: absolute;
-  top: 20px;
-  height: 80%;
-  width: 50%;
+  position: relative;
+  /* top: 20px; */
+  height: 500px;
+  width: 100%;
 }
 </style>

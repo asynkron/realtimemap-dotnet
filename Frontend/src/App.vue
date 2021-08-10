@@ -1,18 +1,25 @@
 <template>
-  <Map />
+  <div class="wrapper">
+    <div class="row">
+      <Map class="column" />
+      <List class="column" />
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent } from 'vue';
 
-import Map from './components/Map.vue'
+import Map from './components/Map.vue';
+import List from './components/List.vue';
 
 export default defineComponent({
   name: 'App',
   components: {
     Map,
+    List,
   },
-})
+});
 </script>
 
 <style>
@@ -23,5 +30,19 @@ export default defineComponent({
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 1;
 }
 </style>

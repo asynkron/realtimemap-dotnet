@@ -50,12 +50,13 @@ export default {
       },
     })
   },
+
   async setViewport(
     swLng: number,
     swLat: number,
     neLng: number,
     neLat: number
   ) {
-    await connection.send('SetViewport', swLng, swLat, neLng, neLat)
+    await connection.send('SetViewport', swLng, swLat, neLng, neLat);
   },
 }
