@@ -32,7 +32,7 @@ namespace Backend.Actors
                         if (!vehicleAlreadyInZone)
                         {
                             _vehiclesInZone.Add(position.VehicleId);
-                            Console.WriteLine($"{position.VehicleId} entered the zone");
+                            Console.WriteLine($"{position.VehicleId} entered the zone {_name}");
                         }
                     }
                     else
@@ -40,7 +40,7 @@ namespace Backend.Actors
                         if (vehicleAlreadyInZone)
                         {
                             _vehiclesInZone.Remove(position.VehicleId);
-                            Console.WriteLine($"{position.VehicleId} left the zone");
+                            Console.WriteLine($"{position.VehicleId} left the zone {_name}");
                         }   
                     }
 
