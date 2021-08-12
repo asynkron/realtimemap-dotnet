@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Backend.Models;
 using Proto;
@@ -8,33 +8,6 @@ namespace Backend.Actors
 {
     public class OrganizationActor : OrganizationActorBase
     {
-        private static readonly Dictionary<string, string> OrganizationsMap = new()
-        {
-            {"0006", "Oy Pohjolan Liikenne Ab"},
-            {"0012", "Helsingin Bussiliikenne Oy"},
-            {"0017", "Tammelundin Liikenne Oy"},
-            {"0018", "Pohjolan Kaupunkiliikenne Oy"},
-            {"0020", "Bus Travel Åbergin Linja Oy"},
-            {"0021", "Bus Travel Oy Reissu Ruoti"},
-            {"0022", "Nobina Finland Oy"},
-            {"0030", "Savonlinja Oy"},
-            {"0036", "Nurmijärven Linja Oy"},
-            {"0040", "HKL-Raitioliikenne"},
-            {"0045", "Transdev Vantaa Oy"},
-            {"0047", "Taksikuljetus Oy"},
-            {"0050", "HKL-Metroliikenne"},
-            {"0051", "Korsisaari Oy"},
-            {"0054", "V-S Bussipalvelut Oy"},
-            {"0055", "Transdev Helsinki Oy"},
-            {"0058", "Koillisen Liikennepalvelut Oy"},
-            {"0060", "Suomenlinnan Liikenne Oy"},
-            {"0059", "Tilausliikenne Nikkanen Oy"},
-            {"0089", "Metropolia"},
-            {"0090", "VR Oy"},
-            {"0195", "Siuntio1"}
-        };
-
-
         public OrganizationActor(IContext context) : base(context)
         {
         }
@@ -47,25 +20,26 @@ namespace Backend.Actors
 
             Console.WriteLine($"Started actor for organization: {orgId} -- {orgName}");
 
-            CreateGeofenceActor(orgId);
+            CreateGeofenceActor(orgId,24.96907, 60.31146, "HelsinkiAirport", 2000);
+            CreateGeofenceActor(orgId,24.95215, 60.17047, "HelsinkiCathedral", 2000);
 
             return Task.CompletedTask;
         }
 
         private string GetOrganizationName(string orgId)
         {
-            OrganizationsMap.TryGetValue(orgId, out var orgName);
+            OrganizationsMap.Data.TryGetValue(orgId, out var orgName);
             if (string.IsNullOrWhiteSpace(orgName)) orgName = orgId;
 
             return orgName;
         }
-
-        private void CreateGeofenceActor(string orgId)
+        
+        private void CreateGeofenceActor(string orgId, double longitude, double latitude, string name, int radius)
         {
-            var helsinkiAirportLocation = new GeoPoint(24.96907, 60.31146);
-            var actorName = $"{orgId}_HelsinkiAirport";
+            var location = new GeoPoint(longitude, latitude);
+            var actorName = $"{orgId}_{name}";
             var geofenceProps = Props.FromProducer(() =>
-                new GeofenceActor(actorName, new CircularGeofence(helsinkiAirportLocation, 2000)));
+                new GeofenceActor(actorName, new CircularGeofence(location, radius)));
 
             Context.Spawn(geofenceProps);
         }
@@ -75,6 +49,17 @@ namespace Backend.Actors
             foreach (var child in Context.Children) Context.Send(child, request);
 
             return Task.CompletedTask;
+        }
+
+        public override async Task<GetGeofencesResponse> GetGeofences(GetGeofencesRequest request)
+        {
+            var result = new GetGeofencesResponse();
+            var tasks = Context.Children.Select(child => Context.RequestAsync<GeofenceDetails>(child, request))
+                .ToList();
+
+            foreach (var task in tasks) result.Geofences.Add(await task);
+
+            return result;
         }
     }
 }

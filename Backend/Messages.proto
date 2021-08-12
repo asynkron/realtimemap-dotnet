@@ -41,5 +41,29 @@ message PositionBatch{
   repeated Position positions = 1;
 }
 
+message GeofenceDetails {
+    string name = 1;
+    string org_id = 2;
+    repeated string vehicles_in_zone = 3;
+}
+
 message GetPositionsHistoryRequest {
 }
+
+message GetGeofencesRequest {
+    string org_id = 1;
+}
+
+message GetGeofencesResponse {
+  repeated GeofenceDetails geofences = 1;
+}
+
+
+message GetTrailRequest {
+    string asset_id = 1;
+}
+
+message GetTrailResponse {
+    PositionBatch position_batch = 1; 
+}
+

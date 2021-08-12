@@ -8,12 +8,5 @@ package backend;
 service MapBackend {
   rpc Connect (stream CommandEnvelope) returns (stream PositionBatch);
   rpc GetTrail (GetTrailRequest) returns (GetTrailResponse);
-}
-
-message GetTrailRequest {
-    string asset_id = 1;
-}
-
-message GetTrailResponse {
-    PositionBatch positionBatch = 1; 
+  rpc GetOrganizationGeofences(GetGeofencesRequest) returns (GetGeofencesResponse);
 }

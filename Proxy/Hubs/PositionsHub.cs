@@ -6,6 +6,7 @@ using Backend;
 using Grpc.Core;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.SignalR;
+using Proxy.DTO;
 
 namespace Proxy.Hubs
 {
@@ -67,7 +68,7 @@ namespace Proxy.Hubs
                 if (!positionBatch.Positions.Any())
                     continue;
 
-                var dtoBatch = positionBatch.Positions.Select(MapPositionDto).ToArray();
+                var dtoBatch = positionBatch.Positions.Select(PositionDto.MapFrom).ToArray();
                 yield return new PositionsDto
                 {
                     Positions = dtoBatch,
@@ -91,30 +92,5 @@ namespace Proxy.Hubs
 
             await State.GrpcConnection.RequestStream.WriteAsync(envelope);
         }
-
-        // IMO it would be better to do it with standard HTTP call instead of SignalR
-        public async Task<PositionsDto> GetTrail(string assetId)
-        {
-            var trail = await State.Client.GetTrailAsync(new GetTrailRequest { AssetId = assetId });
-
-            var positions = trail.PositionBatch.Positions.Select(MapPositionDto).ToArray();
-
-            return new PositionsDto
-            {
-                Positions = positions
-            };
-        }
-
-        private static PositionDto MapPositionDto(Position position) =>
-            new()
-            {
-                Latitude = position.Latitude,
-                Longitude = position.Longitude,
-                Timestamp = position.Timestamp,
-                Heading = position.Heading,
-                VehicleId = position.VehicleId,
-                Speed = 10,
-                DoorsOpen = position.DoorsOpen
-            };
     }
 }

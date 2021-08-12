@@ -46,6 +46,19 @@ namespace Backend.Actors
 
                     break;
                 }
+                case GetGeofencesRequest detailsRequest:
+                {
+                    var geofenceDetails = new GeofenceDetails
+                    {
+                        Name = _name,
+                        OrgId = detailsRequest.OrgId,
+                        VehiclesInZone = {_vehiclesInZone}
+                    };
+                    
+                    context.Respond(geofenceDetails);
+
+                    break;
+                }
             }
 
             return Task.CompletedTask;

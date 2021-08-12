@@ -1,4 +1,6 @@
 using System;
+using Backend;
+using Grpc.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -21,6 +23,13 @@ namespace Proxy
             
             services.AddControllers();
             services.AddSignalR();
+            services.AddGrpcClient<MapBackend.MapBackendClient>(o =>
+            {
+                o.Address = new Uri("http://127.0.0.1:5002");
+            }).ConfigureChannel(c =>
+            {
+                c.Credentials = ChannelCredentials.Insecure;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
