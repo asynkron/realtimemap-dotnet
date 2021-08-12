@@ -20,7 +20,8 @@ namespace Backend.Actors
 
             Console.WriteLine($"Started actor for organization: {orgId} -- {orgName}");
 
-            CreateGeofenceActor(orgId);
+            CreateGeofenceActor(orgId,24.96907, 60.31146, "HelsinkiAirport", 2000);
+            CreateGeofenceActor(orgId,24.95215, 60.17047, "HelsinkiCathedral", 2000);
 
             return Task.CompletedTask;
         }
@@ -32,13 +33,13 @@ namespace Backend.Actors
 
             return orgName;
         }
-
-        private void CreateGeofenceActor(string orgId)
+        
+        private void CreateGeofenceActor(string orgId, double longitude, double latitude, string name, int radius)
         {
-            var helsinkiAirportLocation = new GeoPoint(24.96907, 60.31146);
-            var actorName = $"{orgId}_HelsinkiAirport";
+            var location = new GeoPoint(longitude, latitude);
+            var actorName = $"{orgId}_{name}";
             var geofenceProps = Props.FromProducer(() =>
-                new GeofenceActor(actorName, new CircularGeofence(helsinkiAirportLocation, 2000)));
+                new GeofenceActor(actorName, new CircularGeofence(location, radius)));
 
             Context.Spawn(geofenceProps);
         }

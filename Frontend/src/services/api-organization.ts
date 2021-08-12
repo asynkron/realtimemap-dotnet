@@ -10,12 +10,18 @@ export interface GeofenceDto {
   vehiclesInZone: string[];
 }
 
+export interface OrganizationDetailsDto extends OrganizationDto {
+  geofences: GeofenceDto[];
+}
+
 export const BrowseOrganizations = async (): Promise<OrganizationDto[]> => {
   const res = await ApiInstance.get('organization');
   return res?.data as OrganizationDto[];
 };
 
-export const GetDetails = async (id: string): Promise<GeofenceDto[]> => {
+export const GetDetails = async (
+  id: string
+): Promise<OrganizationDetailsDto> => {
   const res = await ApiInstance.get(`organization/${id}`);
-  return res?.data as GeofenceDto[];
+  return res?.data as OrganizationDetailsDto;
 };

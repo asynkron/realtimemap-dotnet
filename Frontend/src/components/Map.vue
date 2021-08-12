@@ -447,7 +447,7 @@ body {
 #map {
   position: relative;
   /* top: 20px; */
-  height: 500px;
+  height: 100%;
   width: 100%;
 }
 </style>

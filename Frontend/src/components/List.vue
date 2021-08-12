@@ -5,14 +5,13 @@
         <li
           v-for="item in organizations"
           v-bind:key="item.id"
+          v-bind:class="{ active: selectedItemId === item.id }"
           @click="getDetails(item.id)"
         >
           {{ item.name }}
         </li>
       </ul>
-      <div id="content">
-        {{ details }}
-      </div>
+      <organization-details :details="details" />
     </div>
   </div>
 </template>
@@ -22,16 +21,24 @@ import { defineComponent } from 'vue';
 import {
   BrowseOrganizations,
   OrganizationDto,
+  OrganizationDetailsDto,
   GetDetails,
 } from './../services/api-organization';
+import OrganizationDetails from './OrganizationDetails.vue';
 
 export default defineComponent({
   data() {
     return {
       organizations: [] as OrganizationDto[],
-      details: '',
+      details: {} as OrganizationDetailsDto,
+      selectedItemId: ''
     };
   },
+
+  components: {
+    OrganizationDetails,
+  },
+
   created() {
     this.fetchData();
   },
@@ -40,22 +47,30 @@ export default defineComponent({
       this.organizations = await BrowseOrganizations();
     },
     async getDetails(id: string) {
-        const data = await GetDetails(id);
-        this.details = JSON.stringify(data);
+      this.selectedItemId = id;
+      const data = await GetDetails(id);
+      this.details = data;
     },
   },
 });
 </script>
 <style scoped>
+#list {
+  margin: 10px;
+}
+
 ul {
-  list-style-type: square;
-  list-style-position: inside;
-  list-style-image: none;
-  padding: 10px;
   text-align: left;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }
 
 ul li {
-    cursor: pointer;
+  cursor: pointer;
+}
+
+ul li.active {
+  font-weight: bold;
 }
 </style>

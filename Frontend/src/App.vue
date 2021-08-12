@@ -1,8 +1,8 @@
 <template>
   <div class="wrapper">
-    <div class="row">
-      <Map class="column" />
-      <List class="column" />
+    <div class="flex-grid">
+      <Map class="col" />
+      <List class="col" />
     </div>
   </div>
 </template>
@@ -29,20 +29,15 @@ export default defineComponent({
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 
-.row {
+.flex-grid {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  width: 100%;
+  min-height: 100vh;
 }
 
-.column {
-  display: flex;
-  flex-direction: column;
-  flex-basis: 100%;
+.col {
   flex: 1;
+  word-break: break-all;
 }
 </style>
