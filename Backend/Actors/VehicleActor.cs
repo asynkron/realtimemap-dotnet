@@ -17,11 +17,6 @@ namespace Backend.Actors
 
         public override Task OnPosition(Position position)
         {
-            if (position.Timestamp == _currentPosition?.Timestamp)
-            {
-                Console.WriteLine("---------------------------- duplicate?");
-            }
-
             _currentPosition = position;
             _positionsHistory.Add(position);
             
