@@ -7,7 +7,7 @@ namespace Proxy.DTO
         public string VehicleId { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
-        public ulong Timestamp { get; set; }
+        public long Timestamp { get; set; }
         public int Heading { get; set; }
         public float? Speed { get; set; }
 

@@ -40,7 +40,7 @@ namespace Backend.MQTT
 
         [JsonProperty("odo")] public long? Odo { get; set; }
 
-        [JsonProperty("drst")] public long? Drst { get; set; }
+        [JsonProperty("drst")] public int? Drst { get; set; }
 
         [JsonProperty("oday")] public DateTimeOffset? Oday { get; set; }
 

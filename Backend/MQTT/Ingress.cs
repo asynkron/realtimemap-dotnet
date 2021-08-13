@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading;
@@ -15,11 +14,6 @@ using Proto.Cluster;
 
 namespace Backend.MQTT
 {
-    public class VehicleState
-    {
-        public bool DoorsOpen { get; set; }
-    }
-
     public class MqttIngress : IHostedService
     {
         private readonly Cluster _cluster;
@@ -41,8 +35,6 @@ namespace Backend.MQTT
 
         private async Task Start(Cluster cluster)
         {
-            var state = new ConcurrentDictionary<string, VehicleState>();
-
             var mqttClient = CreateMqttClient();
 
             var mqttClientOptions = new MqttClientOptionsBuilder()
@@ -56,12 +48,12 @@ namespace Backend.MQTT
                 .WithTcpServer("mqtt.hsl.fi", 8883)
                 .Build();
 
-            mqttClient.UseApplicationMessageReceivedHandler(ProcessIncomingMessage(state, cluster));
+            mqttClient.UseApplicationMessageReceivedHandler(ProcessIncomingMessage(cluster));
             mqttClient.UseConnectedHandler(async args =>
             {
                 Console.WriteLine("### CONNECTED WITH MQTT SERVER ###");
 
-                await mqttClient.SubscribeAsync("/hfp/v2/journey/#");
+                await mqttClient.SubscribeAsync("/hfp/v2/journey/ongoing/vp/bus/#");
 
                 Console.WriteLine("### SUBSCRIBED ###");
             });
@@ -98,8 +90,7 @@ namespace Backend.MQTT
             return mqttClient;
         }
 
-        private static Func<MqttApplicationMessageReceivedEventArgs, Task> ProcessIncomingMessage(
-            ConcurrentDictionary<string, VehicleState> state, Cluster cluster)
+        private static Func<MqttApplicationMessageReceivedEventArgs, Task> ProcessIncomingMessage(Cluster cluster)
         {
             return async e =>
             {
@@ -117,38 +108,22 @@ namespace Backend.MQTT
 
                     var vehicleId = operatorId + "." + vehicleNumber;
 
-                    //state should not be handled here, it should be in the respective actor
-                    var vs = state.GetOrAdd(vehicleId, x => new VehicleState());
-
                     Payload pl = null;
-
-                    //the payload from MQTT here is super weird.
-                    //there is a property on the root object which dictates what type of event this is
-                    //e.g DOC = doors closed, DOO = doors opened. VP = vehicle position
-                    if (typed.DoorsOpen != null)
-                    {
-                        pl = typed.DoorsOpen;
-                        vs.DoorsOpen = true;
-                    }
-
-                    if (typed.DoorsClosed != null)
-                    {
-                        pl = typed.DoorsClosed;
-                        vs.DoorsOpen = false;
-                    }
-
-                    if (typed.VehiclePosition != null) pl = typed.VehiclePosition;
+                    
+                    if (typed?.VehiclePosition != null) pl = typed.VehiclePosition;
 
                     if (pl != null && pl.HasValidPosition)
                     {
                         var p = new Position
                         {
                             OrgId = operatorId,
-                            Longitude = pl.Long.Value,
-                            Latitude = pl.Lat.Value,
+                            Longitude = pl.Long.GetValueOrDefault(),
+                            Latitude = pl.Lat.GetValueOrDefault(),
                             VehicleId = vehicleId,
-                            Heading = (int) pl.Hdg.Value,
-                            DoorsOpen = vs.DoorsOpen
+                            Heading = (int) pl.Hdg.GetValueOrDefault(),
+                            DoorsOpen = pl.Drst == 1,
+                            Timestamp = pl.Tst.GetValueOrDefault().Ticks,
+                            Speed = pl.Spd.GetValueOrDefault()
                         };
 
                         await cluster

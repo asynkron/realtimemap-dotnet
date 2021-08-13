@@ -5,11 +5,12 @@ option csharp_namespace = "Backend";
 message Position {
   string vehicle_id = 1;
   string org_id = 2;
-  uint64 timestamp = 3;
+  int64 timestamp = 3;
   double longitude = 4;
   double latitude = 5;
   int32 heading = 6;
   bool doors_open = 7;
+  double speed = 8;
 }
 
 message GeoPoint {
