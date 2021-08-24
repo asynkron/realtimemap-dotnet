@@ -1,4 +1,5 @@
 <template>
+  <notifications position="top right"/>
   <div class="wrapper">
     <div class="flex-grid">
       <Map class="col" />

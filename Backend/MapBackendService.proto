@@ -6,7 +6,7 @@ package backend;
 
 
 service MapBackend {
-  rpc Connect (stream CommandEnvelope) returns (stream PositionBatch);
+  rpc Connect (stream CommandEnvelope) returns (stream ResponseEnvelope);
   rpc GetTrail (GetTrailRequest) returns (GetTrailResponse);
   rpc GetOrganizationGeofences(GetGeofencesRequest) returns (GetGeofencesResponse);
 }

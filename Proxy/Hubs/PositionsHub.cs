@@ -13,7 +13,7 @@ namespace Proxy.Hubs
     class PositionHubState
     {
         public MapBackend.MapBackendClient Client;
-        public AsyncDuplexStreamingCall<CommandEnvelope, PositionBatch> GrpcConnection;
+        public AsyncDuplexStreamingCall<CommandEnvelope, ResponseEnvelope> GrpcConnection;
     }
 
     [PublicAPI]
@@ -31,7 +31,7 @@ namespace Proxy.Hubs
             }
         }
 
-        public async IAsyncEnumerable<PositionsDto> Connect()
+        public async IAsyncEnumerable<HubMessageDto> Connect()
         {
             Console.WriteLine("Connect user session " + ConnectionId);
 
@@ -63,16 +63,40 @@ namespace Proxy.Hubs
 
             var responseStream = State.GrpcConnection.ResponseStream;
 
-            await foreach (var positionBatch in responseStream.ReadAllAsync())
+            await foreach (var grpcResponse in responseStream.ReadAllAsync())
             {
-                if (!positionBatch.Positions.Any())
-                    continue;
-
-                var dtoBatch = positionBatch.Positions.Select(PositionDto.MapFrom).ToArray();
-                yield return new PositionsDto
+                switch (grpcResponse.ResponseCase)
                 {
-                    Positions = dtoBatch,
-                };
+                        case ResponseEnvelope.ResponseOneofCase.Notification:
+                        {
+                            var res = new HubMessageDto(HubMessageType.Notification, new NotificationDto
+                            {
+                                Message = grpcResponse.Notification.Message
+                            });
+
+                            yield return res;
+
+                            continue;
+                        }
+
+                        case ResponseEnvelope.ResponseOneofCase.PositionBatch:
+                        {
+                            if (!grpcResponse.PositionBatch.Positions.Any())
+                                continue;
+
+                            var dtoBatch = grpcResponse.PositionBatch.Positions.Select(PositionDto.MapFrom).ToArray();
+
+                            var res = new HubMessageDto(HubMessageType.Position, new PositionsDto
+                            {
+                                Positions = dtoBatch,
+                            });
+
+                            yield return res;
+
+                            continue;
+                        }
+                }
+
             }
         }
 

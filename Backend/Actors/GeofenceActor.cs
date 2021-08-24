@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Backend.Models;
 using Proto;
+using Proto.Cluster;
 
 namespace Backend.Actors
 {
@@ -32,7 +33,10 @@ namespace Backend.Actors
                         if (!vehicleAlreadyInZone)
                         {
                             _vehiclesInZone.Add(position.VehicleId);
-                            Console.WriteLine($"{position.VehicleId} entered the zone {_name}");
+                            context.System.EventStream.Publish(new Notification
+                            {
+                                Message = $"{position.VehicleId} entered the zone {_name}"
+                            });
                         }
                     }
                     else
@@ -40,7 +44,10 @@ namespace Backend.Actors
                         if (vehicleAlreadyInZone)
                         {
                             _vehiclesInZone.Remove(position.VehicleId);
-                            Console.WriteLine($"{position.VehicleId} left the zone {_name}");
+                            context.System.EventStream.Publish(new Notification
+                            {
+                                Message = $"{position.VehicleId} left the zone {_name}"
+                            });
                         }   
                     }
 
