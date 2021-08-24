@@ -1,4 +1,5 @@
 import { HubConnectionBuilder, LogLevel } from '@aspnet/signalr';
+import { notify } from "@kyvg/vue3-notification";
 
 const connection = new HubConnectionBuilder()
   .withUrl('http://localhost:5000/positionhub')
@@ -58,7 +59,12 @@ export default {
         }
 
         else {
-          console.log(hubMessage);
+          console.log(hubMessage.data);
+          notify({
+            title: "GeoFence alert",
+            text: hubMessage.data.message,
+            duration: 10000
+          });
         }
       },
       complete: () => {
