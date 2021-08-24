@@ -1,9 +1,23 @@
-import { HubConnectionBuilder, LogLevel } from '@aspnet/signalr'
+import { HubConnectionBuilder, LogLevel } from '@aspnet/signalr';
 
 const connection = new HubConnectionBuilder()
   .withUrl('http://localhost:5000/positionhub')
   .configureLogging(LogLevel.Debug)
-  .build()
+  .build();
+
+export interface HubMessageDto {
+  payload: HubMessagePayload;
+  data: any;
+}
+
+export interface HubMessagePayload {
+  messageType: HubMessageType;
+}
+
+export enum HubMessageType {
+  Position = 1,
+  Notification = 2
+}
 
 export interface PositionsDto {
   positions: PositionDto[];
@@ -25,30 +39,37 @@ export default {
     lat2: number,
     callback: (value: any) => void
   ) {
-    console.log('connecting')
-    await connection.start()
-    console.log('connected')
+    console.log('connecting');
+    await connection.start();
+    console.log('connected');
 
     connection.onclose(() => {
-      console.log('connection closed')
-    })
+      console.log('connection closed');
+    });
 
     connection.stream('Connect').subscribe({
-      next: (batch: PositionsDto) => {
-        console.log(`Got batch of events ${batch.positions.length}`)
-        for (const e of batch.positions) {
-          callback(e)
+      next: (hubMessage: HubMessageDto) => {
+        if (hubMessage.payload.messageType === HubMessageType.Position) {
+          const batch = hubMessage.data as PositionsDto;
+          console.log(`Got batch of events ${batch.positions.length}`);
+          for (const e of batch.positions) {
+            callback(e);
+          }
+        }
+
+        else {
+          console.log(hubMessage);
         }
       },
       complete: () => {
         //pass
-        console.log('signalr completed')
+        console.log('signalr completed');
       },
       error: x => {
         //pass
-        console.error('signalr error', x)
+        console.error('signalr error', x);
       },
-    })
+    });
   },
 
   async setViewport(
@@ -59,4 +80,4 @@ export default {
   ) {
     await connection.send('SetViewport', swLng, swLat, neLng, neLat);
   },
-}
+};

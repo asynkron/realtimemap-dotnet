@@ -29,6 +29,17 @@ message CommandEnvelope {
   }
 }
 
+message ResponseEnvelope {
+  oneof response {
+    PositionBatch position_batch = 1;
+    Notification notification = 2;
+  }
+}
+
+message Notification {
+    string message = 1;
+}
+
 message CreateViewport{
   string connection_id = 1;
 }
@@ -37,7 +48,7 @@ message UpdateViewport {
   Viewport viewport = 1;
 }
 
-message PositionBatch{
+message PositionBatch {
   repeated Position positions = 1;
 }
 
