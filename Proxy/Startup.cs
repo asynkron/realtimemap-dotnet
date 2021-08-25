@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Proxy.Hubs;
+using Proxy.Notifications;
 
 namespace Proxy
 {
@@ -30,6 +31,8 @@ namespace Proxy
             {
                 c.Credentials = ChannelCredentials.Insecure;
             });
+
+            services.AddHostedService<NotificationsHostedService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

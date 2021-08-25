@@ -48,23 +48,20 @@ export default {
       console.log('connection closed');
     });
 
-    connection.stream('Connect').subscribe({
-      next: (hubMessage: HubMessageDto) => {
-        if (hubMessage.payload.messageType === HubMessageType.Position) {
-          const batch = hubMessage.data as PositionsDto;
-          console.log(`Got batch of events ${batch.positions.length}`);
-          for (const e of batch.positions) {
-            callback(e);
-          }
-        }
+    connection.on("notification", (notification: string) => {
+      console.log(notification);
+      notify({
+        title: "GeoFence alert",
+        text: notification,
+        duration: 10000
+      });
+    });
 
-        else {
-          console.log(hubMessage.data);
-          notify({
-            title: "GeoFence alert",
-            text: hubMessage.data.message,
-            duration: 10000
-          });
+    connection.stream('Connect').subscribe({
+      next: (hubMessage: PositionsDto) => {
+        console.log(`Got batch of events ${hubMessage.positions.length}`);
+        for (const e of hubMessage.positions) {
+          callback(e);
         }
       },
       complete: () => {

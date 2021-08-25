@@ -1,30 +1,25 @@
-﻿using System.Threading.Tasks;
-using Grpc.Core;
+﻿using System.Threading.Channels;
+using System.Threading.Tasks;
 using Proto;
 
 namespace Backend.Actors
 {
     public class NotificationActor : IActor
     {
-        private readonly IServerStreamWriter<ResponseEnvelope> _serverStreamWriter;
+        private readonly ChannelWriter<Notification> _notificationWriter;
 
-        public NotificationActor(IServerStreamWriter<ResponseEnvelope> serverStreamWriter)
+        public NotificationActor(ChannelWriter<Notification> notificationWriter)
         {
-            _serverStreamWriter = serverStreamWriter;
+            _notificationWriter = notificationWriter;
         }
-        
+
         public async Task ReceiveAsync(IContext context)
         {
             switch (context.Message)
             {
                 case Notification notification:
-                {
-                    await _serverStreamWriter.WriteAsync(new ResponseEnvelope
-                    {
-                        Notification = notification
-                    });
+                    await _notificationWriter.WriteAsync(notification);
                     break;
-                }
             }
         }
     }

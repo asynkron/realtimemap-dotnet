@@ -30,13 +30,6 @@ message CommandEnvelope {
   }
 }
 
-message ResponseEnvelope {
-  oneof response {
-    PositionBatch position_batch = 1;
-    Notification notification = 2;
-  }
-}
-
 message Notification {
     string message = 1;
 }
@@ -78,4 +71,3 @@ message GetTrailRequest {
 message GetTrailResponse {
     PositionBatch position_batch = 1; 
 }
-

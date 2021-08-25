@@ -17,10 +17,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Protos" />
-    </ItemGroup>
-
-    <ItemGroup>
         <ProtoGrain Include="Actors.proto" AdditionalImportDirs="." />
     </ItemGroup>
 
@@ -28,6 +24,9 @@
         <Protobuf Include="Messages.proto" AdditionalImportDirs="." />
         <Protobuf Include="MapBackendService.proto" AdditionalImportDirs=".">
             <GrpcServices>Server, Client</GrpcServices>
+        </Protobuf>
+        <Protobuf Include="NotificationBackend.proto">
+          <GrpcServices>Server, Client</GrpcServices>
         </Protobuf>
     </ItemGroup>
 

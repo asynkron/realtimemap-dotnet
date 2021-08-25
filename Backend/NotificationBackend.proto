@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option csharp_namespace = "Backend";
+
+import "Messages.proto";
+import "google/protobuf/empty.proto";
+
+package backend;
+
+service NotificationBackend {
+  rpc Connect(google.protobuf.Empty) returns (stream Notification);
+}

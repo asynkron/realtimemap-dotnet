@@ -79,6 +79,7 @@ namespace Backend
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<MapBackendService>();
+                endpoints.MapGrpcService<NotificationBackendService>();
 
                 endpoints.MapGet("/",
                     async context =>

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,25 +23,20 @@ namespace Backend.Services
             _system = cluster.System;
         }
 
-        public override async Task Connect(IAsyncStreamReader<CommandEnvelope> requestStream,
-            IServerStreamWriter<ResponseEnvelope> responseStream, ServerCallContext context)
+        public override async Task Connect(
+            IAsyncStreamReader<CommandEnvelope> requestStream,
+            IServerStreamWriter<PositionBatch> responseStream,
+            ServerCallContext context)
         {
-            //this is a channel for all events for this specific request
+            // this is a channel for all events for this specific request
             var positionsChannel = Channel.CreateUnbounded<Position>();
-            var props = Props.FromProducer(() => new ViewportActor(positionsChannel));
-            var notificationProps = Props.FromProducer(() => new NotificationActor(responseStream));
             
-            //this is out viewport actor for this request
+            // this is out viewport actor for this request
+            var props = Props.FromProducer(() => new ViewportActor(positionsChannel));
             var viewportPid = _cluster.System.Root.Spawn(props);
-            var notificationPid = _cluster.System.Root.Spawn(notificationProps);
 
-            List<EventStreamSubscription<object>> subs = new List<EventStreamSubscription<object>>
-            {
-                _system.EventStream.Subscribe<Position>(_system.Root, viewportPid),
-                _system.EventStream.Subscribe<Notification>(_system.Root, notificationPid)
-            };
-
-            //subscribe to all position events, so that our viewport actor receives all those positions
+            // subscribe to all position events, so that our viewport actor receives all those positions
+            var subscription = _system.EventStream.Subscribe<Position>(_system.Root, viewportPid);
 
             //create a pipeline that reads from the position channel
             //buffers the positions up to X positions
@@ -51,19 +45,15 @@ namespace Backend.Services
             //
             //why batching? it generally keeps buffers saturated and cause less starts/stops
             //this example would work without it
-            _ =
-                positionsChannel
-                    .Reader
-                    .ReadAllAsync()
-                    .Buffer(10)
-                    .Select(x => new ResponseEnvelope
-                    {
-                        PositionBatch = new PositionBatch
-                        {
-                            Positions = { x }
-                        }
-                    })
-                    .ForEachAwaitAsync(responseStream.WriteAsync);
+            _ = positionsChannel
+                .Reader
+                .ReadAllAsync()
+                .Buffer(10)
+                .Select(positions => new PositionBatch
+                {
+                    Positions = { positions }
+                })
+                .ForEachAwaitAsync(responseStream.WriteAsync);
 
             try
             {
@@ -82,9 +72,8 @@ namespace Backend.Services
                 //clean up all resources
                 _logger.LogWarning("Request ended...");
                 positionsChannel.Writer.Complete();
-                subs.ForEach(x => x.Unsubscribe());
+                subscription.Unsubscribe();
                 await _cluster.System.Root.StopAsync(viewportPid);
-                await _cluster.System.Root.StopAsync(notificationPid);
             }
         }
 

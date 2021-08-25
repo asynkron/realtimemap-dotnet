@@ -28,7 +28,7 @@ namespace Proxy.DTO
         }
     }
 
-    public class PositionsDto : IHubMessageData
+    public class PositionsDto
     {
         public PositionDto[] Positions { get; set; }
     }

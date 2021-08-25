@@ -13,7 +13,7 @@ namespace Proxy.Hubs
     class PositionHubState
     {
         public MapBackend.MapBackendClient Client;
-        public AsyncDuplexStreamingCall<CommandEnvelope, ResponseEnvelope> GrpcConnection;
+        public AsyncDuplexStreamingCall<CommandEnvelope, PositionBatch> GrpcConnection;
     }
 
     [PublicAPI]
@@ -31,13 +31,14 @@ namespace Proxy.Hubs
             }
         }
 
-        public async IAsyncEnumerable<HubMessageDto> Connect()
+        public async IAsyncEnumerable<PositionsDto> Connect()
         {
-            Console.WriteLine("Connect user session " + ConnectionId);
+            Console.WriteLine($"Connect user session {ConnectionId}");
 
-            var channel =
-                new Channel("127.0.0.1", 5002,
-                    ChannelCredentials.Insecure); //GrpcChannel.ForAddress(new Uri("https://localhost:4040"));
+            var channel = new Channel(
+                host: "127.0.0.1",
+                port: 5002,
+                credentials: ChannelCredentials.Insecure);
 
             Console.WriteLine("Got response");
 
@@ -65,38 +66,20 @@ namespace Proxy.Hubs
 
             await foreach (var grpcResponse in responseStream.ReadAllAsync())
             {
-                switch (grpcResponse.ResponseCase)
+                if (!grpcResponse.Positions.Any())
                 {
-                        case ResponseEnvelope.ResponseOneofCase.Notification:
-                        {
-                            var res = new HubMessageDto(HubMessageType.Notification, new NotificationDto
-                            {
-                                Message = grpcResponse.Notification.Message
-                            });
-
-                            yield return res;
-
-                            continue;
-                        }
-
-                        case ResponseEnvelope.ResponseOneofCase.PositionBatch:
-                        {
-                            if (!grpcResponse.PositionBatch.Positions.Any())
-                                continue;
-
-                            var dtoBatch = grpcResponse.PositionBatch.Positions.Select(PositionDto.MapFrom).ToArray();
-
-                            var res = new HubMessageDto(HubMessageType.Position, new PositionsDto
-                            {
-                                Positions = dtoBatch,
-                            });
-
-                            yield return res;
-
-                            continue;
-                        }
+                    continue;
                 }
 
+                var dtoBatch = grpcResponse
+                    .Positions
+                    .Select(PositionDto.MapFrom)
+                    .ToArray();
+
+                yield return new PositionsDto
+                {
+                    Positions = dtoBatch
+                };
             }
         }
 
