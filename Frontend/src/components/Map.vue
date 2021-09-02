@@ -12,8 +12,8 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { throttle } from 'lodash';
 import { GetTrail } from './../services/api-trail';
 
-const showMarkerLevel = 10;
-const stepsInAnimation = 10;
+const showMarkerLevel = 12;
+// const stepsInAnimation = 10;
 const layerUpdateInterval = 5000; //every 5 sec, update the layers
 
 //this must have this shape to be compatible with mapbox
@@ -54,44 +54,51 @@ function updateAssetFromEvent(
   positionDto: PositionDto
 ) {
   const assetState = assetStates[positionDto.vehicleId];
+
+  assetState.currentPosition = {
+    lat: positionDto.latitude,
+    lng: positionDto.longitude,
+    heading: positionDto.heading
+  };
+
   // console.log(positionDto.vehicleId)
   // console.log(assetState.nextPosition);
   // console.log(positionDto);
 
-  const lng = positionDto.longitude - assetState.nextPosition.lng;
-  const lat = positionDto.latitude - assetState.nextPosition.lat;
-  let heading = positionDto.heading - assetState.nextPosition.heading;
+  // const lng = positionDto.longitude - assetState.nextPosition.lng;
+  // const lat = positionDto.latitude - assetState.nextPosition.lat;
+  // let heading = positionDto.heading - assetState.nextPosition.heading;
 
-  if (lng != 0) {
-    console.log(lng, lat);
-  }
+  // if (lng != 0) {
+  //   console.log(lng, lat);
+  // }
 
-  //prevent full rotations when next and current course cross between 0 and 360
-  if (heading > 180) {
-    heading -= 360;
-  }
+  // //prevent full rotations when next and current course cross between 0 and 360
+  // if (heading > 180) {
+  //   heading -= 360;
+  // }
 
-  if (heading < -180) {
-    heading += 360;
-  }
+  // if (heading < -180) {
+  //   heading += 360;
+  // }
 
-  assetState.steps = stepsInAnimation;
-  assetState.delta = {
-    lng: lng / stepsInAnimation,
-    lat: lat / stepsInAnimation,
-    heading: heading / stepsInAnimation,
-  };
-  //console.log(assetState.delta );
-  assetState.currentPosition = assetState.nextPosition;
-  assetState.nextPosition = {
-    lng: positionDto.longitude,
-    lat: positionDto.latitude,
-    heading: positionDto.heading,
-  };
-  assetState.shouldAnimate =
-    assetState.delta.lat != 0 ||
-    assetState.delta.lng != 0 ||
-    assetState.delta.heading != 0;
+  // assetState.steps = stepsInAnimation;
+  // assetState.delta = {
+  //   lng: lng / stepsInAnimation,
+  //   lat: lat / stepsInAnimation,
+  //   heading: heading / stepsInAnimation,
+  // };
+  // //console.log(assetState.delta );
+  // assetState.currentPosition = assetState.nextPosition;
+  // assetState.nextPosition = {
+  //   lng: positionDto.longitude,
+  //   lat: positionDto.latitude,
+  //   heading: positionDto.heading,
+  // };
+  // assetState.shouldAnimate =
+  //   assetState.delta.lat != 0 ||
+  //   assetState.delta.lng != 0 ||
+  //   assetState.delta.heading != 0;
 
   if (positionDto.doorsOpen) {
     //console.log("doors open...")
@@ -142,20 +149,32 @@ function updateClusterLayers(map: mapboxgl.Map, assetStates: AssetStates) {
   }
 }
 
-function updateAssetLayers(map: mapboxgl.Map, assetStates: AssetStates) {
-  const bounds = map.getBounds();
+function getBoundsWithMargin(bounds: mapboxgl.LngLatBounds) {
+  // get bounds with 10% margin on each side (proportional to a viewbox)
+  const marginPercent = 0.1;
+
   const sw = bounds.getSouthWest();
   const ne = bounds.getNorthEast();
 
-  //expand viewport so we ingest things just outside the bounds also.
-  const biggerBounds = new mapboxgl.LngLatBounds(
-    { lat: sw.lat - 0.1, lng: sw.lng - 0.1 },
-    { lat: ne.lat + 0.1, lng: ne.lng + 0.1 }
+  const lngMargin = Math.abs(sw.lng - ne.lng) * marginPercent;
+  const latMargin = Math.abs(sw.lat - ne.lat) * marginPercent;
+
+  return new mapboxgl.LngLatBounds(
+    { lat: sw.lat - latMargin, lng: sw.lng - lngMargin },
+    { lat: ne.lat + latMargin, lng: ne.lng + lngMargin }
   );
+}
+
+function updateAssetLayers(map: mapboxgl.Map, assetStates: AssetStates) {
+  const bounds = map.getBounds();
+
+  // expand viewport so we ingest things just outside the bounds also.
+  const biggerBounds = getBoundsWithMargin(bounds);
 
   const data = mapAssetsToGeoJson(assetStates, (asset) =>
     biggerBounds.contains(asset.currentPosition)
   );
+
   const b = map.getSource('assets') as GeoJSONSource;
   b.setData(data as any);
 }
@@ -192,6 +211,7 @@ function createMapLayers(map: mapboxgl.Map) {
         },
       },
     });
+
     map.addLayer({
       id: 'asset-route',
       type: 'line',
@@ -409,9 +429,9 @@ export default defineComponent({
           return;
         }
 
-        animateAssetPositions(map, assetStates);
+        // animateAssetPositions(map, assetStates);
         updateAssetLayers(map, assetStates);
-      }, 100 / stepsInAnimation); //10 seconds per sensor reading, divided by steps
+      }, 1000); //10 seconds per sensor reading, divided by steps
 
       setInterval(() => {
         //extrapolate asset positions
