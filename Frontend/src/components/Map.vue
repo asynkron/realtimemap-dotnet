@@ -433,6 +433,18 @@ export default defineComponent({
         updateAssetLayers(map, assetStates);
       }, 1000); //10 seconds per sensor reading, divided by steps
 
+      // clear assets outside of a viewbox
+      setInterval(() => {
+
+        const biggerBounds = getBoundsWithMargin(map.getBounds());
+
+        Object.values(assetStates)
+          .filter(assetState => !biggerBounds.contains(assetState.currentPosition))
+          .map(assetState => assetState.vehicleId)
+          .forEach(id => delete assetStates[id]);
+
+      }, 5000);
+
       setInterval(() => {
         //extrapolate asset positions
         updateClusterLayers(map, assetStates);
