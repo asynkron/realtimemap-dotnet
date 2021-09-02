@@ -6,23 +6,10 @@ const connection = new HubConnectionBuilder()
   .configureLogging(LogLevel.Debug)
   .build();
 
-export interface HubMessageDto {
-  payload: HubMessagePayload;
-  data: any;
-}
-
-export interface HubMessagePayload {
-  messageType: HubMessageType;
-}
-
-export enum HubMessageType {
-  Position = 1,
-  Notification = 2
-}
-
 export interface PositionsDto {
   positions: PositionDto[];
 }
+
 export interface PositionDto {
   vehicleId: string;
   longitude: number;
@@ -33,6 +20,7 @@ export interface PositionDto {
 }
 
 export default {
+
   async connect(
     lng1: number,
     lat1: number,
@@ -83,4 +71,5 @@ export default {
   ) {
     await connection.send('SetViewport', swLng, swLat, neLng, neLat);
   },
+
 };
