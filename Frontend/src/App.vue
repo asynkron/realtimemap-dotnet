@@ -1,4 +1,7 @@
 <template>
+  <Dialog header="Header" :visible="true">
+    elo
+  </Dialog>
   <notifications position="top right"/>
   <div class="wrapper">
     <div class="flex-grid">
