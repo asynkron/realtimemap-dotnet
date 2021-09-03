@@ -8,6 +8,8 @@ namespace Backend.Actors
 {
     public class OrganizationActor : OrganizationActorBase
     {
+        private string _organizationName;
+        
         public OrganizationActor(IContext context) : base(context)
         {
         }
@@ -16,12 +18,12 @@ namespace Backend.Actors
         {
             var orgId = Context.Self.Id.Substring("partition-activator/".Length, 4);
 
-            var orgName = GetOrganizationName(orgId);
+            _organizationName = GetOrganizationName(orgId);
 
-            Console.WriteLine($"Started actor for organization: {orgId} -- {orgName}");
+            Console.WriteLine($"Started actor for organization: {orgId} -- {_organizationName}");
 
-            CreateGeofenceActor(orgId,24.96907, 60.31146, "HelsinkiAirport", 2000);
-            CreateGeofenceActor(orgId,24.95215, 60.17047, "HelsinkiCathedral", 2000);
+            CreateGeofenceActor(24.96907, 60.31146, "HelsinkiAirport", 2000);
+            CreateGeofenceActor(24.95215, 60.17047, "HelsinkiCathedral", 2000);
 
             return Task.CompletedTask;
         }
@@ -34,12 +36,16 @@ namespace Backend.Actors
             return orgName;
         }
         
-        private void CreateGeofenceActor(string orgId, double longitude, double latitude, string name, int radius)
+        private void CreateGeofenceActor(double longitude, double latitude, string zoneName, int radius)
         {
             var location = new GeoPoint(longitude, latitude);
-            var actorName = $"{orgId}_{name}";
             var geofenceProps = Props.FromProducer(() =>
-                new GeofenceActor(actorName, new CircularGeofence(location, radius)));
+                new GeofenceActor(
+                    zoneName,
+                    _organizationName,
+                    new CircularGeofence(location, radius)
+                )
+            );
 
             Context.Spawn(geofenceProps);
         }

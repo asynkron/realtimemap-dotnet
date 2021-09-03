@@ -9,13 +9,15 @@ namespace Backend.Actors
 {
     public class GeofenceActor : IActor
     {
-        private readonly string _name;
+        private readonly string _zoneName;
+        private readonly string _organizationName;
         private readonly CircularGeofence _circularGeofence;
         private readonly HashSet<string> _vehiclesInZone;
 
-        public GeofenceActor(string name, CircularGeofence circularGeofence)
+        public GeofenceActor(string zoneName, string organizationName, CircularGeofence circularGeofence)
         {
-            _name = name;
+            _zoneName = zoneName;
+            _organizationName = organizationName;
             _circularGeofence = circularGeofence;
             _vehiclesInZone = new HashSet<string>();
         }
@@ -35,7 +37,7 @@ namespace Backend.Actors
                             _vehiclesInZone.Add(position.VehicleId);
                             context.System.EventStream.Publish(new Notification
                             {
-                                Message = $"{position.VehicleId} entered the zone {_name}"
+                                Message = $"{position.VehicleId} from {_organizationName} entered the zone {_zoneName}"
                             });
                         }
                     }
@@ -46,7 +48,7 @@ namespace Backend.Actors
                             _vehiclesInZone.Remove(position.VehicleId);
                             context.System.EventStream.Publish(new Notification
                             {
-                                Message = $"{position.VehicleId} left the zone {_name}"
+                                Message = $"{position.VehicleId} from {_organizationName} left the zone {_zoneName}"
                             });
                         }   
                     }
@@ -57,7 +59,7 @@ namespace Backend.Actors
                 {
                     var geofenceDetails = new GeofenceDetails
                     {
-                        Name = _name,
+                        Name = _zoneName,
                         OrgId = detailsRequest.OrgId,
                         VehiclesInZone = {_vehiclesInZone}
                     };
