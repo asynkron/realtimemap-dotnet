@@ -4,13 +4,7 @@ namespace Proxy.DTO
 {
     public class GeofenceDto
     {
-        public GeofenceDto(string name, HashSet<string> vehiclesInZone)
-        {
-            Name = name;
-            VehiclesInZone = vehiclesInZone;
-        }
-
-        public string Name { get; }
-        public HashSet<string> VehiclesInZone { get; }
+        public string Name { get; set; }
+        public string[] VehiclesInZone { get; set; }
     }
 }

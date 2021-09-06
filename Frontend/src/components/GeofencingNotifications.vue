@@ -9,6 +9,7 @@ export default defineComponent({
   name: 'GeofencingNotifications ',
 
   mounted() {
+    // todo: this is not the cleanest solution
     window.toast = this.$toast;
   }
 });

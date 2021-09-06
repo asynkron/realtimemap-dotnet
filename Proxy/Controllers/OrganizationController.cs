@@ -21,11 +21,14 @@ namespace Proxy.Controllers
         [HttpGet]
         public ActionResult<IReadOnlyList<OrganizationDto>> Browse()
         {
-            var result = OrganizationsMap.Data.Select(x => new OrganizationDto
-            {
-                Id = x.Key,
-                Name = x.Value
-            }).ToList();
+            var result = OrganizationsMap.Data
+                .Select(keyValuePair => new OrganizationDto
+                {
+                    Id = keyValuePair.Key,
+                    Name = keyValuePair.Value
+                })
+                .OrderBy(organization => organization.Name)
+                .ToList();
 
             return Ok(result);
         }
@@ -35,7 +38,7 @@ namespace Proxy.Controllers
         {
             if (OrganizationsMap.Data.ContainsKey(id) is false) return NotFound();
 
-            var organization = OrganizationsMap.Data.Single(x => x.Key == id);
+            var organization = OrganizationsMap.Data.Single(keyValuePair => keyValuePair.Key == id);
 
             var organizationGeofences =
                 await _client.GetOrganizationGeofencesAsync(new GetGeofencesRequest {OrgId = id});
@@ -45,7 +48,15 @@ namespace Proxy.Controllers
                 Id = organization.Key,
                 Name = organization.Value,
                 Geofences = organizationGeofences.Geofences
-                    .Select(x => new GeofenceDto(x.Name, x.VehiclesInZone.ToHashSet())).ToList()
+                    .Select(geofence => new GeofenceDto
+                    {
+                        Name = geofence.Name,
+                        VehiclesInZone = geofence.VehiclesInZone
+                            .OrderBy(zone => zone)
+                            .ToArray()
+                    })
+                    .OrderBy(geofence => geofence.Name)
+                    .ToList()
             };
 
             return Ok(organizationDetails);

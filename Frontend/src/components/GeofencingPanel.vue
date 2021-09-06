@@ -1,9 +1,8 @@
 <template>
 
   <div class="flex flex-row">
-    <List class="flex-1"/>
-    <div class="notifications-placeholder">
-    </div>
+    <GeofencingOrganizations class="flex-1"/>
+    <div class="notifications-placeholder" />
   </div>
 
 </template>
@@ -11,13 +10,13 @@
 <script lang="ts">
 
 import { defineComponent } from 'vue';
-import List from './List.vue';
+import GeofencingOrganizations from './GeofencingOrganizations.vue';
 
 export default defineComponent({
   name: "GeofencingPanel",
 
   components: {
-    List
+    GeofencingOrganizations
   }
 });
 

@@ -11,7 +11,7 @@
         </span>
       </div>
     </div>
-    <div class="mt-5">
+    <div class="mt-5" v-if="details">
       <OrganizationDetails :details="details" />
     </div>
   </div>
@@ -20,18 +20,18 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import {
-  BrowseOrganizations,
+  browseOrganizations,
   OrganizationDto,
   OrganizationDetailsDto,
-  GetDetails,
-} from './../services/api-organization';
+  getDetails,
+} from '../services/api-organization';
 import OrganizationDetails from './OrganizationDetails.vue';
 
 export default defineComponent({
   data() {
     return {
       organizations: [] as OrganizationDto[],
-      details: {} as OrganizationDetailsDto,
+      details: null as OrganizationDetailsDto | null,
       selectedItem: null as OrganizationDto | null,
     };
   },
@@ -54,10 +54,10 @@ export default defineComponent({
 
   methods: {
     async fetchData() {
-      this.organizations = await BrowseOrganizations();
+      this.organizations = await browseOrganizations();
     },
     async getDetails(id: string) {
-      this.details = await GetDetails(id);
+      this.details = await getDetails(id);
     },
   },
 

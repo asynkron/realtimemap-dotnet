@@ -1,7 +1,7 @@
 import { PositionsDto } from '@/signalr-hub'
-import ApiInstance from './api-base'
+import apiInstance from './api-base'
 
 export const GetTrail = async (assetId: string): Promise<PositionsDto> => {
-  const res = await ApiInstance.get(`trail/${assetId}`)
+  const res = await apiInstance.get(`trail/${assetId}`)
   return res?.data as PositionsDto
 }

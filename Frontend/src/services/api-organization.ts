@@ -1,4 +1,4 @@
-import ApiInstance from './api-base';
+import apiInstance from './api-base';
 
 export interface OrganizationDto {
   id: string;
@@ -14,14 +14,14 @@ export interface OrganizationDetailsDto extends OrganizationDto {
   geofences: GeofenceDto[];
 }
 
-export const BrowseOrganizations = async (): Promise<OrganizationDto[]> => {
-  const res = await ApiInstance.get('organization');
+export const browseOrganizations = async (): Promise<OrganizationDto[]> => {
+  const res = await apiInstance.get('organization');
   return res?.data as OrganizationDto[];
 };
 
-export const GetDetails = async (
+export const getDetails = async (
   id: string
 ): Promise<OrganizationDetailsDto> => {
-  const res = await ApiInstance.get(`organization/${id}`);
+  const res = await apiInstance.get(`organization/${id}`);
   return res?.data as OrganizationDetailsDto;
 };
