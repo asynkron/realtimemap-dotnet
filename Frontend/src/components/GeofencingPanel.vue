@@ -26,7 +26,7 @@ export default defineComponent({
 <style scoped>
 
   .notifications-placeholder {
-    width: 20rem;
+    width: 27rem;
   }
 
 </style>

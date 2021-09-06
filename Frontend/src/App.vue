@@ -1,5 +1,5 @@
 <template>
-  <notifications position="top right"/>
+  <GeofencingNotifications  />
   <div class="flex flex-row min-h-screen">
     <Map class="flex-1" />
     <GeofencingPanel class="flex-1" />
@@ -11,12 +11,14 @@ import { defineComponent } from 'vue';
 
 import Map from './components/Map.vue';
 import GeofencingPanel from './components/GeofencingPanel.vue';
+import GeofencingNotifications from './components/GeofencingNotifications.vue';
 
 export default defineComponent({
   name: 'App',
   components: {
     Map,
     GeofencingPanel,
+    GeofencingNotifications,
   },
 });
 </script>
@@ -28,6 +30,14 @@ export default defineComponent({
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
+}
+
+.p-toast-message-icon.pi.pi-info-circle:before {
+  content: "\e971" !important;
+}
+
+.p-toast-message-icon.pi.pi-check:before {
+  content: "\e970" !important;
 }
 
 </style>

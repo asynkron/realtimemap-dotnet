@@ -38,11 +38,21 @@ export default {
 
     connection.on("notification", (notification: string) => {
       console.log(notification);
-      notify({
-        title: "GeoFence alert",
-        text: notification,
-        duration: 10000
-      });
+
+      // todo: message type should be passed via proprty
+      if (notification.includes("entered")) {
+        window.toast.add({
+          severity:'success',
+          detail: notification,
+          life: 3000
+        });
+      } else {
+        window.toast.add({
+          severity:'info',
+          detail: notification,
+          life: 3000
+        });
+      }
     });
 
     connection.stream('Connect').subscribe({
