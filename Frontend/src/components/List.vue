@@ -1,17 +1,18 @@
 <template>
-  <div>
-    <div id="list">
-      <ul>
-        <li
-          v-for="item in organizations"
-          v-bind:key="item.id"
-          v-bind:class="{ active: selectedItemId === item.id }"
-          @click="getDetails(item.id)"
-        >
-          {{ item.name }}
-        </li>
-      </ul>
-      <organization-details :details="details" />
+  <div class="m-3">
+    <h2 class="mt-0 mb-0">
+      Geofencing
+    </h2>
+    <div class="mt-6">
+      <div class="p-field">
+        <span class="p-float-label">
+          <Dropdown id="organization-select" v-model="selectedItem" :options="organizations" optionLabel="name" />
+          <label for="organization-select">Select an organization</label>
+        </span>
+      </div>
+    </div>
+    <div class="mt-5">
+      <OrganizationDetails :details="details" />
     </div>
   </div>
 </template>
@@ -31,8 +32,16 @@ export default defineComponent({
     return {
       organizations: [] as OrganizationDto[],
       details: {} as OrganizationDetailsDto,
-      selectedItemId: ''
+      selectedItem: null as OrganizationDto | null,
     };
+  },
+
+  watch: {
+    selectedItem(selectedOrganization) {
+      if (selectedOrganization) {
+        this.getDetails(selectedOrganization.id);
+      }
+    }
   },
 
   components: {
@@ -42,35 +51,21 @@ export default defineComponent({
   created() {
     this.fetchData();
   },
+
   methods: {
     async fetchData() {
       this.organizations = await BrowseOrganizations();
     },
     async getDetails(id: string) {
-      this.selectedItemId = id;
-      const data = await GetDetails(id);
-      this.details = data;
+      this.details = await GetDetails(id);
     },
   },
+
 });
 </script>
+
 <style scoped>
-#list {
-  margin: 10px;
-}
-
-ul {
-  text-align: left;
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-ul li {
-  cursor: pointer;
-}
-
-ul li.active {
-  font-weight: bold;
+.p-dropdown {
+    width: 100%;
 }
 </style>
