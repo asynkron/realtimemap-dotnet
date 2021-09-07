@@ -1,14 +1,18 @@
 <template>
-  <GeofencingNotifications  />
-  <div class="flex flex-row min-h-screen">
-    <Map class="flex-1" />
-    <GeofencingPanel class="flex-1" />
+  <div class="min-h-screen flex flex-column">
+    <GeofencingNotifications  />
+    <TopBar />
+    <div class="flex-1 flex flex-row">
+      <Map class="flex-1" />
+      <GeofencingPanel class="flex-1" />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 
+import TopBar from './components/TopBar.vue';
 import Map from './components/Map.vue';
 import GeofencingPanel from './components/GeofencingPanel.vue';
 import GeofencingNotifications from './components/GeofencingNotifications.vue';
@@ -16,6 +20,7 @@ import GeofencingNotifications from './components/GeofencingNotifications.vue';
 export default defineComponent({
   name: 'App',
   components: {
+    TopBar,
     Map,
     GeofencingPanel,
     GeofencingNotifications,
