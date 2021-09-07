@@ -6,10 +6,10 @@
 
     <div class="ml-3 flex flex-column">
       <div class="font-semibold">
-        Realtime Map
+        Real-time Map
       </div>
       <div class="text-sm">
-        Proto.Actor sample app
+        Proto.Actor showcase
       </div>
     </div>
 
