@@ -16,36 +16,35 @@ namespace Backend.Actors
 
         public override Task OnStarted()
         {
-            var orgId = Context.Self.Id.Substring("partition-activator/".Length, 4);
+            var organizationId = Context.Self.Id.Substring("partition-activator/".Length, 4);
 
-            _organizationName = GetOrganizationName(orgId);
+            var organization = GetOrganization(organizationId);
 
-            Console.WriteLine($"Started actor for organization: {orgId} -- {_organizationName}");
+            _organizationName = organization.Name;
 
-            CreateGeofenceActor(24.96907, 60.31146, "HelsinkiAirport", 2000);
-            CreateGeofenceActor(24.95215, 60.17047, "HelsinkiCathedral", 2000);
+            Console.WriteLine($"Started actor for organization: {organizationId} -- {_organizationName}");
+
+            foreach (var geofence in organization.Geofences)
+            {
+                CreateGeofenceActor(geofence);
+            }
 
             return Task.CompletedTask;
         }
 
-        private string GetOrganizationName(string orgId)
+        private static Organization GetOrganization(string organizationId)
         {
-            OrganizationsMap.Data.TryGetValue(orgId, out var orgName);
-            if (string.IsNullOrWhiteSpace(orgName)) orgName = orgId;
-
-            return orgName;
+            return Organizations.ById.TryGetValue(organizationId, out var foundOrganization)
+                ? foundOrganization
+                : new Organization(organizationId, organizationId);
         }
-        
-        private void CreateGeofenceActor(double longitude, double latitude, string zoneName, int radius)
+
+        private void CreateGeofenceActor(CircularGeofence circularGeofence)
         {
-            var location = new GeoPoint(longitude, latitude);
-            var geofenceProps = Props.FromProducer(() =>
-                new GeofenceActor(
-                    zoneName,
-                    _organizationName,
-                    new CircularGeofence(location, radius)
-                )
-            );
+            var geofenceProps = Props.FromProducer(() => new GeofenceActor(
+                organizationName: _organizationName,
+                circularGeofence: circularGeofence
+            ));
 
             Context.Spawn(geofenceProps);
         }

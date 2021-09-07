@@ -9,14 +9,12 @@ namespace Backend.Actors
 {
     public class GeofenceActor : IActor
     {
-        private readonly string _zoneName;
         private readonly string _organizationName;
         private readonly CircularGeofence _circularGeofence;
         private readonly HashSet<string> _vehiclesInZone;
 
-        public GeofenceActor(string zoneName, string organizationName, CircularGeofence circularGeofence)
+        public GeofenceActor(string organizationName, CircularGeofence circularGeofence)
         {
-            _zoneName = zoneName;
             _organizationName = organizationName;
             _circularGeofence = circularGeofence;
             _vehiclesInZone = new HashSet<string>();
@@ -37,7 +35,7 @@ namespace Backend.Actors
                             _vehiclesInZone.Add(position.VehicleId);
                             context.System.EventStream.Publish(new Notification
                             {
-                                Message = $"{position.VehicleId} from {_organizationName} entered the zone {_zoneName}"
+                                Message = $"{position.VehicleId} from {_organizationName} entered the zone {_circularGeofence.Name}"
                             });
                         }
                     }
@@ -48,7 +46,7 @@ namespace Backend.Actors
                             _vehiclesInZone.Remove(position.VehicleId);
                             context.System.EventStream.Publish(new Notification
                             {
-                                Message = $"{position.VehicleId} from {_organizationName} left the zone {_zoneName}"
+                                Message = $"{position.VehicleId} from {_organizationName} left the zone {_circularGeofence.Name}"
                             });
                         }   
                     }
@@ -59,7 +57,7 @@ namespace Backend.Actors
                 {
                     var geofenceDetails = new GeofenceDetails
                     {
-                        Name = _zoneName,
+                        Name = _circularGeofence.Name,
                         OrgId = detailsRequest.OrgId,
                         VehiclesInZone = {_vehiclesInZone}
                     };

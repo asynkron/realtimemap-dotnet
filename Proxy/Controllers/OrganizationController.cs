@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Backend;
+using Backend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Proxy.DTO;
 
@@ -21,33 +22,37 @@ namespace Proxy.Controllers
         [HttpGet]
         public ActionResult<IReadOnlyList<OrganizationDto>> Browse()
         {
-            var result = OrganizationsMap.Data
-                .Select(keyValuePair => new OrganizationDto
+            var results = Organizations.All
+                .Where(organization => organization.Geofences.Any())
+                .Select(organization => new OrganizationDto
                 {
-                    Id = keyValuePair.Key,
-                    Name = keyValuePair.Value
+                    Id = organization.Id,
+                    Name = organization.Name
                 })
                 .OrderBy(organization => organization.Name)
                 .ToList();
 
-            return Ok(result);
+            return Ok(results);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<OrganizationDetailsDto>> Get(string id)
         {
-            if (OrganizationsMap.Data.ContainsKey(id) is false) return NotFound();
-
-            var organization = OrganizationsMap.Data.Single(keyValuePair => keyValuePair.Key == id);
-
-            var organizationGeofences =
-                await _client.GetOrganizationGeofencesAsync(new GetGeofencesRequest {OrgId = id});
-
-            var organizationDetails = new OrganizationDetailsDto
+            if (!Organizations.ById.TryGetValue(id, out var organization))
             {
-                Id = organization.Key,
-                Name = organization.Value,
-                Geofences = organizationGeofences.Geofences
+                return NotFound();
+            }
+            
+            var geofences = await _client.GetOrganizationGeofencesAsync(new GetGeofencesRequest
+            {
+                OrgId = id
+            });
+
+            var results = new OrganizationDetailsDto
+            {
+                Id = organization.Id,
+                Name = organization.Name,
+                Geofences = geofences.Geofences
                     .Select(geofence => new GeofenceDto
                     {
                         Name = geofence.Name,
@@ -59,7 +64,7 @@ namespace Proxy.Controllers
                     .ToList()
             };
 
-            return Ok(organizationDetails);
+            return Ok(results);
         }
     }
 }

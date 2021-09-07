@@ -4,12 +4,15 @@ namespace Backend.Models
 {
     public class CircularGeofence
     {
+        public string Name { get; }
+        
         private readonly double _radiusInMetres;
         private readonly GeoCoordinate _coordinate;
 
-        public CircularGeofence(GeoPoint centralPoint, double radiusInMetres)
+        public CircularGeofence(string name, GeoPoint centralPoint, double radiusInMetres)
         {
             _radiusInMetres = radiusInMetres;
+            Name = name;
 
             _coordinate = new GeoCoordinate(centralPoint.Latitude, centralPoint.Longitude);
         }
