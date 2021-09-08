@@ -12,3 +12,8 @@ service OrganizationActor {
   rpc OnPosition (Position) returns (google.protobuf.Empty);
   rpc GetGeofences(GetGeofencesRequest) returns (GetGeofencesResponse);
 }
+
+service GlobalViewportActor {
+  rpc OnPosition (Position) returns (google.protobuf.Empty);
+  rpc GetPositionsInViewport(Viewport) returns (PositionBatch);
+}

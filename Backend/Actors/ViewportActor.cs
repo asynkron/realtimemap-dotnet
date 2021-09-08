@@ -1,6 +1,8 @@
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Proto;
+using Proto.Cluster;
 
 namespace Backend.Actors
 {
@@ -20,25 +22,36 @@ namespace Backend.Actors
             switch (context.Message)
             {
                 case Position position:
-                {
-                    if (position.IsWithinViewport(_viewport))
-                    {
-                        await _positions.Writer.WriteAsync(position);
-                    }
-
+                    await OnPosition(position);
                     break;
-                }
+                
                 case UpdateViewport updateViewport:
-                    SetViewport(updateViewport.Viewport);
+                    await OnUpdateViewport(context, updateViewport);
                     break;
             }
         }
 
-        private void SetViewport(Viewport viewport)
+        private async Task OnPosition(Position position)
         {
-            _viewport.MergeFrom(viewport);
+            if (position.IsWithinViewport(_viewport))
+            {
+                await _positions.Writer.WriteAsync(position);
+            }
         }
+        
+        private async Task OnUpdateViewport(IContext context, UpdateViewport updateViewport)
+        {
+            _viewport.MergeFrom(updateViewport.Viewport);
 
-
+            var positionsInViewport = await context
+                .Cluster()
+                .GetGlobalViewportActor()
+                .GetPositionsInViewport(_viewport, CancellationToken.None);
+            
+            foreach (var position in positionsInViewport.Positions)
+            {
+                await _positions.Writer.WriteAsync(position);
+            }
+        }
     }
 }

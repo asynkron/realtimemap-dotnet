@@ -44,6 +44,10 @@ namespace Backend
                     .FromProducer(() => new OrganizationActorActor((c, _, _) =>
                         ActivatorUtilities.CreateInstance<OrganizationActor>(provider, c)));
                 
+                var globalViewportProps = Props
+                    .FromProducer(() => new GlobalViewportActorActor((c, _, _) =>
+                        ActivatorUtilities.CreateInstance<GlobalViewportActor>(provider, c)));
+                
                 system
                     .WithServiceProvider(provider)
                     .WithRemote(GrpcCoreRemoteConfig.BindToLocalhost())
@@ -51,6 +55,7 @@ namespace Backend
                         .Setup(clusterName, new TestProvider(new TestProviderOptions(),new InMemAgent()), new PartitionIdentityLookup())
                         .WithClusterKind("VehicleActor", vehicleProps)
                         .WithClusterKind("OrganizationActor", organizationProps)
+                        .WithClusterKind("GlobalViewportActor", globalViewportProps)
                     )
                     .Cluster()
                     .WithPidCacheInvalidation();

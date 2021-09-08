@@ -37,7 +37,7 @@ namespace Backend.Services
             var notificationActorPid = _cluster.System.Root.Spawn(notificationActorProps);
 
             var notificationsSubscription = _system.EventStream.Subscribe<Notification>(_system.Root, notificationActorPid);
-
+            
             try
             {
                 await notificationsChannel

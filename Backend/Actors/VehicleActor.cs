@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Proto;
 
@@ -16,8 +17,15 @@ namespace Backend.Actors
         {
             _positionsHistory.Add(position);
             
-            //broadcast event on all cluster members eventstream
-            _ = Cluster.GetOrganizationActor(position.OrgId).OnPosition(position, CancellationTokens.FromSeconds(1));
+            _ = Cluster
+                .GetOrganizationActor(position.OrgId)
+                .OnPosition(position, CancellationTokens.FromSeconds(1));
+
+            _ = Cluster
+                .GetGlobalViewportActor()
+                .OnPosition(position, CancellationToken.None);
+            
+            // broadcast event on all cluster members eventstream
             Cluster.MemberList.BroadcastEvent(position);
 
             return Task.CompletedTask;

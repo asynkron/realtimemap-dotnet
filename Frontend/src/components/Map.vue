@@ -346,7 +346,7 @@ function updateViewport(map: mapboxgl.Map, assetStates: AssetStates) {
 }
 
 function subscribeToMapEvents(map: mapboxgl.Map, assetStates: AssetStates) {
-  const throttledUpdateViewport = throttle(updateViewport, 100);
+  const throttledUpdateViewport = throttle(updateViewport, 1000);
 
   map.on('zoomend', () => {
     throttledUpdateViewport(map, assetStates);
