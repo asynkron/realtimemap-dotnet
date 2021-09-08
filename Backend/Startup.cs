@@ -52,10 +52,8 @@ namespace Backend
                         .WithClusterKind("VehicleActor", vehicleProps)
                         .WithClusterKind("OrganizationActor", organizationProps)
                     )
-                    .Cluster().WithPidCacheInvalidation();
-
-                //hack, start cluster. this should be injected into a hosted service instead
-                system.Cluster().StartMemberAsync().GetAwaiter().GetResult();
+                    .Cluster()
+                    .WithPidCacheInvalidation();
 
                 return system;
             });
@@ -63,6 +61,7 @@ namespace Backend
             services.AddSingleton(provider => provider.GetService<ActorSystem>()!.Cluster());
 
             services.AddHostedService<MqttIngress>();
+            services.AddHostedService<ActorSystemHostedService>();
         }
         
 
