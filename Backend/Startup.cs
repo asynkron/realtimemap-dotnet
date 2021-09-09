@@ -1,10 +1,10 @@
 ﻿using System;
 using Backend.Actors;
+using Backend.Hubs;
 using Backend.MQTT;
-using Backend.Services;
+using Backend.Notifications;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Proto;
@@ -23,17 +23,21 @@ namespace Backend
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddGrpc();
+            services.AddControllers();
+            services.AddSignalR();
+
+            services.AddHostedService<NotificationsHostedService>();
+            
             services.AddSingleton(provider =>
             {
                 var clusterName = "MyCluster";
-
+            
                 var config = ActorSystemConfig
                     .Setup()
                     .WithDeadLetterThrottleCount(3)
                     .WithDeadLetterThrottleInterval(TimeSpan.FromSeconds(1))
                     .WithDeveloperSupervisionLogging(false);
-
+            
                 var system = new ActorSystem(config);
                 
                 var vehicleProps = Props
@@ -59,16 +63,15 @@ namespace Backend
                     )
                     .Cluster()
                     .WithPidCacheInvalidation();
-
+            
                 return system;
             });
-
+            
             services.AddSingleton(provider => provider.GetService<ActorSystem>()!.Cluster());
-
+            
             services.AddHostedService<MqttIngress>();
             services.AddHostedService<ActorSystemHostedService>();
         }
-        
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -77,20 +80,20 @@ namespace Backend
             {
                 app.UseDeveloperExceptionPage();
             }
+            
+            app.UseCors(builder => builder
+                .WithOrigins("http://localhost:8080")
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
+            );
 
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<MapBackendService>();
-                endpoints.MapGrpcService<NotificationBackendService>();
-
-                endpoints.MapGet("/",
-                    async context =>
-                    {
-                        await context.Response.WriteAsync(
-                            "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-                    });
+                endpoints.MapControllers();
+                endpoints.MapHub<PositionsHub>("/positionhub");
             });
         }
     }

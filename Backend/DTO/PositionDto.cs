@@ -1,6 +1,4 @@
-using Backend;
-
-namespace Proxy.DTO
+namespace Backend.DTO
 {
     public class PositionDto
     {

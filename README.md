@@ -34,12 +34,6 @@ cd Backend
 dotnet run
 ```
 
-Start Proxy:
-```
-cd Proxy
-dotnet run
-```
-
 The app is available on [localhost:8080](http://localhost:8080/).
 
 ## Data source

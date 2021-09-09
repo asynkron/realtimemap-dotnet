@@ -1,22 +1,23 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Backend;
+using Backend.DTO;
 using Backend.Models;
 using Microsoft.AspNetCore.Mvc;
-using Proxy.DTO;
+using Proto.Cluster;
 
-namespace Proxy.Controllers
+namespace Backend.Controllers
 {
     [ApiController]
     [Route("api/organization")]
     public class OrganizationController : ControllerBase
     {
-        private readonly MapBackend.MapBackendClient _client;
+        private readonly Cluster _cluster;
 
-        public OrganizationController(MapBackend.MapBackendClient client)
+        public OrganizationController(Cluster cluster)
         {
-            _client = client;
+            _cluster = cluster;
         }
 
         [HttpGet]
@@ -42,11 +43,13 @@ namespace Proxy.Controllers
             {
                 return NotFound();
             }
-            
-            var geofences = await _client.GetOrganizationGeofencesAsync(new GetGeofencesRequest
-            {
-                OrgId = id
-            });
+
+            var organizationActorClient = _cluster.GetOrganizationActor(id);
+
+            var geofences = await organizationActorClient.GetGeofences(
+                new GetGeofencesRequest { OrgId = id },
+                CancellationToken.None
+            );
 
             var results = new OrganizationDetailsDto
             {

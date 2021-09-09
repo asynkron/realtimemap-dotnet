@@ -23,23 +23,8 @@ message Viewport {
   GeoPoint north_east = 2;
 }
 
-message CommandEnvelope {
-  oneof command {
-    CreateViewport create_viewport = 1;
-    UpdateViewport update_viewport = 2;
-  }
-}
-
 message Notification {
     string message = 1;
-}
-
-message CreateViewport{
-  string connection_id = 1;
-}
-
-message UpdateViewport {
-  Viewport viewport = 1;
 }
 
 message PositionBatch {

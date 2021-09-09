@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Proxy.DTO
+﻿namespace Backend.DTO
 {
     public class GeofenceDto
     {

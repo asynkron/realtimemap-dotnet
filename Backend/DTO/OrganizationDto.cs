@@ -1,4 +1,4 @@
-﻿namespace Proxy.DTO
+﻿namespace Backend.DTO
 {
     public class OrganizationDto
     {

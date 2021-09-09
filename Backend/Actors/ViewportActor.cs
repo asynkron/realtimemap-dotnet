@@ -54,4 +54,9 @@ namespace Backend.Actors
             }
         }
     }
+
+    public class UpdateViewport
+    {
+        public Viewport Viewport { get; set; }
+    }
 }
