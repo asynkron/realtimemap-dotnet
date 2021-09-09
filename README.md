@@ -11,6 +11,9 @@ Showcase features:
 * vehicles in geofencing areas per public transport company
 
 
+![image](https://user-images.githubusercontent.com/1219044/132653003-58733735-f49a-4615-adb5-36552b1415c1.png)
+
+
 ## Running
 
 Configure Mapbox:
