@@ -99,9 +99,8 @@ namespace Backend.MQTT
                     //0/1       /2        /3             /4              /5           /6               /7            /8               /9         /10            /11        /12          /13         /14             /15       /16
                     // /<prefix>/<version>/<journey_type>/<temporal_type>/<event_type>/<transport_mode>/<operator_id>/<vehicle_number>/<route_id>/<direction_id>/<headsign>/<start_time>/<next_stop>/<geohash_level>/<geohash>/<sid>/#
 
-                    var payload = e.ApplicationMessage.Payload;
-                    var ascii = Encoding.ASCII.GetString(payload);
-                    var typed = JsonConvert.DeserializeObject<Root>(ascii);
+                    var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                    var typed = JsonConvert.DeserializeObject<Root>(payload);
                     var parts = e.ApplicationMessage.Topic.Split("/");
                     var operatorId = parts[7];
                     var vehicleNumber = parts[8];
