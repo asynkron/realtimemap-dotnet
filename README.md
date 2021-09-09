@@ -18,8 +18,8 @@ Showcase features:
 
 Configure Mapbox:
 1. Create an account on [Mapbox](https://www.mapbox.com/).
-1. Generate a free access token.
-1. Paste the token in `Map.vue` / `mapboxgl.accessToken = '...'`.
+1. Copy a token from: main dashbaord / access tokens / default public token.
+1. Paste the token in `Frontend\src\mapboxConfig.ts`.
 
 Start frontend:
 ```

@@ -11,6 +11,7 @@ import mapboxgl, { GeoJSONSource } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { throttle } from 'lodash';
 import { GetTrail } from './../services/api-trail';
+import mapboxConfig from './../mapboxConfig';
 
 const showMarkerLevel = 12;
 // const stepsInAnimation = 10;
@@ -381,9 +382,8 @@ export default defineComponent({
   name: 'Map',
   setup: function (props: any) {
     onMounted(async () => {
-      console.error('Add your mapbox token here...');
-      mapboxgl.accessToken =
-        'pk.eyJ1IjoiamFrdWIyNTY0ODk2IiwiYSI6ImNrZDVwY2N3bjBqOTQyc256OGF2Z2Q5ZnkifQ.pgbKbR8SewkfHsLPPgWYEg';
+      mapboxgl.accessToken = mapboxConfig.getAccessToken();
+
       const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v11',
