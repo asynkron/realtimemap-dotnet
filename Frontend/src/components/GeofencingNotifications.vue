@@ -4,13 +4,28 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { connectToGeofencingNotificationsHub } from './geofencingNotificationsHub';
 
 export default defineComponent({
   name: 'GeofencingNotifications ',
 
   mounted() {
-    // todo: this is not the cleanest solution
-    window.toast = this.$toast;
+    connectToGeofencingNotificationsHub(notification => {
+      // todo: message type should be passed via proprty
+      if (notification.includes("entered")) {
+        this.$toast.add({
+          severity:'success',
+          detail: notification,
+          life: 3000
+        });
+      } else {
+        this.$toast.add({
+          severity:'info',
+          detail: notification,
+          life: 3000
+        });
+      }
+    });
   }
 });
 </script>

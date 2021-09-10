@@ -453,10 +453,9 @@ export default defineComponent({
       const bounds = map.getBounds();
       const sw = bounds.getSouthWest();
       const ne = bounds.getNorthEast();
-      await assets.connect(sw.lng, sw.lat, ne.lng, ne.lat, (positionDto) => {
+      await assets.connect((positionDto) => {
         if (!assetStates[positionDto.assetId]) {
-          assetStates[positionDto.vehicleId] =
-            createAssetFromState(positionDto);
+          assetStates[positionDto.vehicleId] = createAssetFromState(positionDto);
         }
 
         updateAssetFromEvent(assetStates, positionDto);

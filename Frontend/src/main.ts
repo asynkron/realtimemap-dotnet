@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import Notifications from '@kyvg/vue3-notification'
 import App from './App.vue'
-import "./services/notifications"
 
 import PrimeVue from 'primevue/config'
 import ToastService from 'primevue/toastservice'

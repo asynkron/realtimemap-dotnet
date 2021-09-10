@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Backend.Actors;
 using Backend.DTO;
@@ -15,76 +11,82 @@ using Channel = System.Threading.Channels.Channel;
 
 namespace Backend.Hubs
 {
-    class PositionHubState
-    {
-        public PID ViewportPid;
-        public EventStreamSubscription<object> Subscription;
-    }
-
     [PublicAPI]
     public class PositionsHub : Hub
     {
-        private readonly ActorSystem _system;
+        private readonly ActorSystem _actorSystem;
         private readonly Cluster _cluster;
 
-        public PositionsHub(ActorSystem system, Cluster cluster)
+        public PositionsHub(ActorSystem actorSystem, Cluster cluster)
         {
-            _system = system;
+            _actorSystem = actorSystem;
             _cluster = cluster;
         }
         
-        public string ConnectionId => $"connection{Context.ConnectionId}";
-
-        private PositionHubState State
+        private HubState State
         {
-            get
-            {
-                if (!Context.Items.ContainsKey("state")) Context.Items.Add("state", new PositionHubState());
-
-                return Context.Items["state"] as PositionHubState;
-            }
+            get => Context.Items["state"] as HubState;
+            set => Context.Items["state"] = value;
         }
         
-        public async IAsyncEnumerable<PositionsDto> Connect([EnumeratorCancellation] CancellationToken cancellationToken)
+        class HubState
         {
+            public PID ViewportActorPid;
+            public EventStreamSubscription<object> ViewportSubscription;
+        }
+
+        public override Task OnConnectedAsync()
+        {
+            State = new HubState();
+            
             Console.WriteLine("Subscribing to positions subscription");
             
-            // this is a channel for all events for this specific request
+            SubscribeToViewportPositions();
+
+            return Task.CompletedTask;
+        }
+
+        private void SubscribeToViewportPositions()
+        {
             var positionsChannel = Channel.CreateUnbounded<Position>();
+
+            // viewport actor will receive position updates and write
+            // the ones inside configured bounds to the channel
+            State.ViewportActorPid = _cluster.System.Root.Spawn(
+                Props.FromProducer(() => new ViewportActor(positionsChannel.Writer))
+            );
+
+            // subscribe viewport actor to all position events
+            State.ViewportSubscription = _actorSystem.EventStream.Subscribe<Position>(
+                _actorSystem.Root,
+                State.ViewportActorPid
+            );
+
+            // since this hub will be disposed later on, we need to keep a reference to a calling client
+            var caller = Clients.Caller;
             
-            // this is out viewport actor for this request
-            var props = Props.FromProducer(() => new ViewportActor(positionsChannel));
-            State.ViewportPid = _cluster.System.Root.Spawn(props);
-
-            // subscribe to all position events, so that our viewport actor receives all those positions
-            State.Subscription = _system.EventStream.Subscribe<Position>(_system.Root, State.ViewportPid);
-
-            //create a pipeline that reads from the position channel
-            //buffers the positions up to X positions
-            //translate those buffers into PositionBatch messages
-            //write those to the response stream
-            //
-            //why batching? it generally keeps buffers saturated and cause less starts/stops
-            //this example would work without it
-            var positionBatches = positionsChannel
+            // this pipeline will read positions from the channel and send them to SignalR client in batches
+            // batching is used to keep buffers saturated and to cause less starts/stops
+            _ = positionsChannel
                 .Reader
-                .ReadAllAsync(cancellationToken)
-                .Buffer(10);
-
-            await foreach (var positionBatch in positionBatches.WithCancellation(cancellationToken))
-            {
-                yield return new PositionsDto
+                .ReadAllAsync()
+                .Buffer(10)
+                .ForEachAwaitAsync(async positionBatch =>
                 {
-                    Positions = positionBatch
-                        .Select(PositionDto.MapFrom)
-                        .ToArray()
-                };
-            }
+                    await caller.SendAsync("positions", new PositionsDto
+                    {
+                        Positions = positionBatch
+                            .Select(PositionDto.MapFrom)
+                            .ToArray()
+                    });
+                });
         }
 
         public Task SetViewport(double swLng, double swLat, double neLng, double neLat)
         {
-            _cluster.System.Root.Send(State.ViewportPid, new UpdateViewport
+            Console.WriteLine("Setting viewport");
+            
+            _cluster.System.Root.Send(State.ViewportActorPid, new UpdateViewport
             {
                 Viewport = new Viewport
                 {
@@ -99,12 +101,12 @@ namespace Backend.Hubs
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             Console.WriteLine("Unsubscribing from positions subscription");
-            
-            State.Subscription?.Unsubscribe();
 
-            if (State.ViewportPid is not null)
+            State.ViewportSubscription?.Unsubscribe();
+
+            if (State.ViewportActorPid is not null)
             {
-                await _cluster.System.Root.StopAsync(State.ViewportPid);
+                await _cluster.System.Root.StopAsync(State.ViewportActorPid);
             }
         }
     }

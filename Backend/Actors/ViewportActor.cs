@@ -8,12 +8,12 @@ namespace Backend.Actors
 {
     public class ViewportActor : IActor
     {
-        private readonly Channel<Position> _positions;
+        private readonly ChannelWriter<Position> _positionChannel;
         private readonly Viewport _viewport;
 
-        public ViewportActor(Channel<Position> positions)
+        public ViewportActor(ChannelWriter<Position> positionChannel)
         {
-            _positions = positions;
+            _positionChannel = positionChannel;
             _viewport = new Viewport();
         }
 
@@ -35,7 +35,7 @@ namespace Backend.Actors
         {
             if (position.IsWithinViewport(_viewport))
             {
-                await _positions.Writer.WriteAsync(position);
+                await _positionChannel.WriteAsync(position);
             }
         }
         
@@ -50,7 +50,7 @@ namespace Backend.Actors
             
             foreach (var position in positionsInViewport.Positions)
             {
-                await _positions.Writer.WriteAsync(position);
+                await _positionChannel.WriteAsync(position);
             }
         }
     }

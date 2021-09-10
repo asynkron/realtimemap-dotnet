@@ -2,7 +2,6 @@
 using Backend.Actors;
 using Backend.Hubs;
 using Backend.MQTT;
-using Backend.Notifications;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,8 +25,6 @@ namespace Backend
             services.AddControllers();
             services.AddSignalR();
 
-            services.AddHostedService<NotificationsHostedService>();
-            
             services.AddSingleton(provider =>
             {
                 var clusterName = "MyCluster";
@@ -94,6 +91,7 @@ namespace Backend
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<PositionsHub>("/positionhub");
+                endpoints.MapHub<GeofencingNotificationsHub>("/geofencingNotificationsHub");
             });
         }
     }
