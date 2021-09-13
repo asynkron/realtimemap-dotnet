@@ -12,6 +12,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { throttle } from 'lodash';
 import { GetTrail } from './../services/api-trail';
 import mapboxConfig from './../mapboxConfig';
+import { addAssetTrails } from './assetTrails';
 
 const showMarkerLevel = 12;
 // const stepsInAnimation = 10;
@@ -214,20 +215,6 @@ function createMapLayers(map: mapboxgl.Map) {
     });
 
     map.addLayer({
-      id: 'asset-route',
-      type: 'line',
-      source: 'asset-route',
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round',
-      },
-      paint: {
-        'line-color': '#888',
-        'line-width': 8,
-      },
-    });
-
-    map.addLayer({
       id: 'clusters',
       type: 'circle',
       source: 'assets-cluster',
@@ -282,6 +269,20 @@ function createMapLayers(map: mapboxgl.Map) {
       },
     });
 
+    map.addLayer({
+      id: 'asset-route',
+      type: 'line',
+      source: 'asset-route',
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round',
+      },
+      paint: {
+        'line-color': '#2196f3',
+        'line-width': 8,
+      },
+    });
+
     const popup = new mapboxgl.Popup({
       closeButton: false,
       closeOnClick: false,
@@ -311,27 +312,8 @@ function createMapLayers(map: mapboxgl.Map) {
       popup.remove();
     });
 
-    map.on('click', 'asset-layer', async (e: any) => {
-      const features = map.queryRenderedFeatures(e.point);
-      const feature = features[0];
-      if (feature != null && feature.properties != null) {
-        const assetId = feature.properties['asset-id'];
-        const trail = await GetTrail(assetId);
-        const source = {
-          type: 'Feature',
-          properties: {},
-          geometry: {
-            type: 'LineString',
-            coordinates: trail.positions.map((x) => {
-              return [x.longitude, x.latitude];
-            }),
-          },
-        };
+    addAssetTrails(map);
 
-        const b = map.getSource('asset-route') as GeoJSONSource;
-        b.setData(source as any);
-      }
-    });
   });
 }
 
@@ -449,6 +431,7 @@ export default defineComponent({
         //extrapolate asset positions
         updateClusterLayers(map, assetStates);
       }, layerUpdateInterval);
+
 
       const bounds = map.getBounds();
       const sw = bounds.getSouthWest();
