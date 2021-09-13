@@ -1,5 +1,4 @@
 import { createApp } from 'vue'
-import Notifications from '@kyvg/vue3-notification'
 import App from './App.vue'
 
 import PrimeVue from 'primevue/config'
@@ -18,7 +17,6 @@ import Toast from 'primevue/toast';
 
 const app = createApp(App);
 
-app.use(Notifications);
 app.use(PrimeVue);
 app.use(ToastService);
 
