@@ -5,14 +5,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from 'vue';
+import { defineComponent, onMounted, PropType } from 'vue';
 import assets, { PositionDto } from '../signalr-hub';
 import mapboxgl, { GeoJSONSource } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { throttle } from 'lodash';
-import { GetTrail } from './../services/api-trail';
 import mapboxConfig from './../mapboxConfig';
 import { addAssetTrails } from './assetTrails';
+import { addGeofencesLayer, addGeofencesSource, Geofence, setGeofences, onGeofencingSourceLoaded } from './geofences';
 
 const showMarkerLevel = 12;
 // const stepsInAnimation = 10;
@@ -214,6 +214,8 @@ function createMapLayers(map: mapboxgl.Map) {
       },
     });
 
+    addGeofencesSource(map);
+
     map.addLayer({
       id: 'clusters',
       type: 'circle',
@@ -282,6 +284,8 @@ function createMapLayers(map: mapboxgl.Map) {
         'line-width': 8,
       },
     });
+
+    addGeofencesLayer(map);
 
     const popup = new mapboxgl.Popup({
       closeButton: false,
@@ -362,93 +366,118 @@ function animateAssetPositions(map: mapboxgl.Map, assetStates: AssetStates) {
 
 export default defineComponent({
   name: 'Map',
-  setup: function (props: any) {
-    onMounted(async () => {
-      mapboxgl.accessToken = mapboxConfig.getAccessToken();
 
-      const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: [24.938, 60.169],
-        zoom: 8,
-      });
-
-      map.loadImage('/bus.png', (error, image) => {
-        if (error) throw error;
-        map.addImage('moving', image);
-      });
-
-      map.loadImage('/doorsopen.png', (error, image) => {
-        if (error) throw error;
-        map.addImage('doorsopen', image);
-      });
-      //
-      // map.loadImage("/parked.png", (error, image) => {
-      //   if (error) throw error;
-      //   map.addImage('parked', image);
-      // });
-      //
-      // map.loadImage("/mini.png", (error, image) => {
-      //   if (error) throw error;
-      //   map.addImage('mini', image);
-      // });
-      //
-      // map.loadImage("/eq.png", (error, image) => {
-      //   if (error) throw error;
-      //   map.addImage('eq', image);
-      // });
-
-      const assetStates: AssetStates = {};
-      (window as any).assetStates = assetStates;
-
-      subscribeToMapEvents(map, assetStates);
-
-      createMapLayers(map);
-
-      setInterval(() => {
-        const zoom = map.getZoom();
-        if (zoom < showMarkerLevel) {
-          return;
-        }
-
-        // animateAssetPositions(map, assetStates);
-        updateAssetLayers(map, assetStates);
-      }, 1000); //10 seconds per sensor reading, divided by steps
-
-      // clear assets outside of a viewbox
-      setInterval(() => {
-
-        const biggerBounds = getBoundsWithMargin(map.getBounds());
-
-        Object.values(assetStates)
-          .filter(assetState => !biggerBounds.contains(assetState.currentPosition))
-          .map(assetState => assetState.vehicleId)
-          .forEach(id => delete assetStates[id]);
-
-      }, 5000);
-
-      setInterval(() => {
-        //extrapolate asset positions
-        updateClusterLayers(map, assetStates);
-      }, layerUpdateInterval);
-
-
-      const bounds = map.getBounds();
-      const sw = bounds.getSouthWest();
-      const ne = bounds.getNorthEast();
-      await assets.connect((positionDto) => {
-        if (!assetStates[positionDto.assetId]) {
-          assetStates[positionDto.vehicleId] = createAssetFromState(positionDto);
-        }
-
-        updateAssetFromEvent(assetStates, positionDto);
-      });
-      setTimeout(
-        async () => await assets.setViewport(sw.lng, sw.lat, ne.lng, ne.lat),
-        500
-      );
-    });
+  props: {
+    geofences: {
+      type: Array as PropType<Geofence[]>,
+      require: true
+    }
   },
+
+  data() {
+    return {
+      map: undefined as unknown as mapboxgl.Map // it will be set in mounted and available later on
+    }
+  },
+
+  async mounted() {
+    mapboxgl.accessToken = mapboxConfig.getAccessToken();
+
+    this.map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [24.938, 60.169],
+      zoom: 8,
+    });
+
+    this.map.loadImage('/bus.png', (error, image) => {
+      if (error) throw error;
+      this.map.addImage('moving', image);
+    });
+
+    this.map.loadImage('/doorsopen.png', (error, image) => {
+      if (error) throw error;
+      this.map.addImage('doorsopen', image);
+    });
+    //
+    // map.loadImage("/parked.png", (error, image) => {
+    //   if (error) throw error;
+    //   map.addImage('parked', image);
+    // });
+    //
+    // map.loadImage("/mini.png", (error, image) => {
+    //   if (error) throw error;
+    //   map.addImage('mini', image);
+    // });
+    //
+    // map.loadImage("/eq.png", (error, image) => {
+    //   if (error) throw error;
+    //   map.addImage('eq', image);
+    // });
+
+    const assetStates: AssetStates = {};
+    (window as any).assetStates = assetStates;
+
+    subscribeToMapEvents(this.map, assetStates);
+
+    createMapLayers(this.map);
+
+    setInterval(() => {
+      const zoom = this.map.getZoom();
+      if (zoom < showMarkerLevel) {
+        return;
+      }
+
+      // animateAssetPositions(map, assetStates);
+      updateAssetLayers(this.map, assetStates);
+    }, 1000); //10 seconds per sensor reading, divided by steps
+
+    // clear assets outside of a viewbox
+    setInterval(() => {
+
+      const biggerBounds = getBoundsWithMargin(this.map.getBounds());
+
+      Object.values(assetStates)
+        .filter(assetState => !biggerBounds.contains(assetState.currentPosition))
+        .map(assetState => assetState.vehicleId)
+        .forEach(id => delete assetStates[id]);
+
+    }, 5000);
+
+    setInterval(() => {
+      //extrapolate asset positions
+      updateClusterLayers(this.map, assetStates);
+    }, layerUpdateInterval);
+
+
+    const bounds = this.map.getBounds();
+    const sw = bounds.getSouthWest();
+    const ne = bounds.getNorthEast();
+    await assets.connect((positionDto) => {
+      if (!assetStates[positionDto.assetId]) {
+        assetStates[positionDto.vehicleId] = createAssetFromState(positionDto);
+      }
+
+      updateAssetFromEvent(assetStates, positionDto);
+    });
+    setTimeout(
+      async () => await assets.setViewport(sw.lng, sw.lat, ne.lng, ne.lat),
+      500
+    );
+
+
+    onGeofencingSourceLoaded(this.map, () => {
+      setGeofences(this.map, this.geofences || [])
+    });
+
+  },
+
+  watch: {
+    geofences(newGeofences: Geofence[] | undefined) {
+      setGeofences(this.map, newGeofences || [])
+    }
+  }
+
 });
 </script>
 

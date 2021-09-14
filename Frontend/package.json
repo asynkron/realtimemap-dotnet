@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@aspnet/signalr": "^1.1.4",
+    "@turf/circle": "^6.5.0",
     "@types/lodash": "^4.14.163",
     "@types/mapbox-gl": "^1.12.5",
     "axios": "^0.21.1",

@@ -1,7 +1,7 @@
 <template>
 
   <div class="flex flex-row">
-    <GeofencingOrganizations class="flex-1"/>
+    <GeofencingOrganizations class="flex-1" @geofences-updated="$emit('geofences-updated', $event)" />
     <div class="notifications-placeholder" />
   </div>
 

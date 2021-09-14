@@ -1,10 +1,10 @@
 <template>
   <div class="min-h-screen flex flex-column">
-    <GeofencingNotifications  />
+    <GeofencingNotifications />
     <TopBar />
     <div class="flex-1 flex flex-row">
-      <Map class="flex-1" />
-      <GeofencingPanel class="flex-1" />
+      <Map class="flex-1" :geofences="geofences" />
+      <GeofencingPanel class="flex-1" @geofences-updated="geofences = $event" />
     </div>
   </div>
 </template>
@@ -16,15 +16,25 @@ import TopBar from './components/TopBar.vue';
 import Map from './components/Map.vue';
 import GeofencingPanel from './components/GeofencingPanel.vue';
 import GeofencingNotifications from './components/GeofencingNotifications.vue';
+import { Geofence } from "./components/geofences"
 
 export default defineComponent({
+
   name: 'App',
+
   components: {
     TopBar,
     Map,
     GeofencingPanel,
     GeofencingNotifications,
   },
+
+  data() {
+    return {
+      geofences: [] as Geofence[],
+    };
+  },
+
 });
 </script>
 

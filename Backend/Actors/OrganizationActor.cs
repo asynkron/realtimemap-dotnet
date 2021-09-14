@@ -59,7 +59,9 @@ namespace Backend.Actors
         public override async Task<GetGeofencesResponse> GetGeofences(GetGeofencesRequest request)
         {
             var result = new GetGeofencesResponse();
-            var tasks = Context.Children.Select(child => Context.RequestAsync<GeofenceDetails>(child, request))
+            
+            var tasks = Context.Children
+                .Select(child => Context.RequestAsync<GeofenceDetails>(child, request))
                 .ToList();
 
             foreach (var task in tasks) result.Geofences.Add(await task);

@@ -7,6 +7,9 @@ export interface OrganizationDto {
 
 export interface GeofenceDto {
   name: string;
+  radiusInMeters: number;
+  longitude: number;
+  latitude: number;
   vehiclesInZone: string[];
 }
 

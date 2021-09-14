@@ -59,6 +59,9 @@ namespace Backend.Controllers
                     .Select(geofence => new GeofenceDto
                     {
                         Name = geofence.Name,
+                        RadiusInMeters = geofence.RadiusInMeters,
+                        Longitude = geofence.Longitude,
+                        Latitude = geofence.Latitude,
                         VehiclesInZone = geofence.VehiclesInZone
                             .OrderBy(zone => zone)
                             .ToArray()

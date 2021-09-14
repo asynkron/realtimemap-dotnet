@@ -58,6 +58,9 @@ namespace Backend.Actors
                     var geofenceDetails = new GeofenceDetails
                     {
                         Name = _circularGeofence.Name,
+                        RadiusInMeters = _circularGeofence.RadiusInMetres,
+                        Longitude = _circularGeofence.Coordinate.Longitude,
+                        Latitude = _circularGeofence.Coordinate.Latitude,
                         OrgId = detailsRequest.OrgId,
                         VehiclesInZone = {_vehiclesInZone}
                     };

@@ -33,8 +33,11 @@ message PositionBatch {
 
 message GeofenceDetails {
     string name = 1;
-    string org_id = 2;
-    repeated string vehicles_in_zone = 3;
+    double radiusInMeters = 2;
+    double longitude = 3;
+    double latitude = 4;
+    string org_id = 5;
+    repeated string vehicles_in_zone = 6;
 }
 
 message GetPositionsHistoryRequest {

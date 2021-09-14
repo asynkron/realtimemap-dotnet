@@ -58,6 +58,16 @@ export default defineComponent({
     },
     async getDetails(id: string) {
       this.details = await getDetails(id);
+
+      const geofences = this.details
+        .geofences
+        .map(geofence => ({
+          long: geofence.longitude,
+          lat: geofence.latitude,
+          radiusInMeters: geofence.radiusInMeters
+        }));
+
+      this.$emit("geofences-updated", geofences);
     },
   },
 
