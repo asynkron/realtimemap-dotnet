@@ -278,7 +278,7 @@ function createMapLayers(map: mapboxgl.Map) {
         'line-cap': 'round',
       },
       paint: {
-        'line-color': '#2196f3',
+        'line-color': '#ed4981',
         'line-width': 8,
       },
     });
