@@ -13,10 +13,10 @@
 import { defineComponent } from 'vue';
 
 import TopBar from './components/TopBar.vue';
-import Map from './components/Map.vue';
+import Map from './components/map/Map.vue';
 import GeofencingPanel from './components/GeofencingPanel.vue';
 import GeofencingNotifications from './components/GeofencingNotifications.vue';
-import { Geofence } from "./components/geofences"
+import { Geofence } from "./components/map/geofencesLayer"
 
 export default defineComponent({
 

@@ -1,5 +1,6 @@
-import mapboxgl, { GeoJSONSource } from "mapbox-gl"
+import mapboxgl from "mapbox-gl"
 import turfCircle from "@turf/circle"
+import { trySetGeoJsonSource } from "./mapUtils";
 
 export interface Geofence {
   long: number;
@@ -9,7 +10,8 @@ export interface Geofence {
 
 const geofencesSourceId = 'geofences';
 
-export const addGeofencesSource = (map: mapboxgl.Map) => {
+export const addGeofencesLayer = (map: mapboxgl.Map) => {
+
   map.addSource(geofencesSourceId, {
     type: "geojson",
     data: {
@@ -17,9 +19,7 @@ export const addGeofencesSource = (map: mapboxgl.Map) => {
       features: []
     }
   });
-}
 
-export const addGeofencesLayer = (map: mapboxgl.Map) => {
   map.addLayer({
     id: "geofences",
     type: "line",
@@ -30,25 +30,20 @@ export const addGeofencesLayer = (map: mapboxgl.Map) => {
       "line-width": 5
     }
   });
+
 }
 
-export const onGeofencingSourceLoaded = (map: mapboxgl.Map, callback: () => void) => {
-  map.on('sourcedata', () => {
-    if (map.getSource(geofencesSourceId) && map.isSourceLoaded(geofencesSourceId)) {
-      callback();
-    }
+export const setGeofences = (map: mapboxgl.Map, geofences: Geofence[] | undefined) => {
+  trySetGeoJsonSource(map, geofencesSourceId, {
+    type: "FeatureCollection",
+    features: mapGeofencesToPolygons(geofences)
   });
 }
 
-export const setGeofences = (map: mapboxgl.Map, geofences: Geofence[]) => {
-  const source = map.getSource(geofencesSourceId) as GeoJSONSource;
-
-  if (source) {
-    source.setData({
-      type: "FeatureCollection",
-      features: geofences.map(mapGeofenceToPolygon)
-    });
-  }
+const mapGeofencesToPolygons = (geofences: Geofence[] | undefined): GeoJSON.Feature<GeoJSON.Polygon, GeoJSON.GeoJsonProperties>[] => {
+  return geofences
+    ? geofences.map(mapGeofenceToPolygon)
+    : [];
 }
 
 const mapGeofenceToPolygon = (geofence: Geofence): GeoJSON.Feature<GeoJSON.Polygon, GeoJSON.GeoJsonProperties> => {

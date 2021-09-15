@@ -1,10 +1,5 @@
 import { HubConnectionBuilder, LogLevel } from '@aspnet/signalr';
 
-const connection = new HubConnectionBuilder()
-  .withUrl('http://localhost:5000/positionhub')
-  .configureLogging(LogLevel.Debug)
-  .build();
-
 export interface PositionsDto {
   positions: PositionDto[];
 }
@@ -18,9 +13,19 @@ export interface PositionDto {
   doorsOpen: boolean;
 }
 
+export interface AssetConnection {
+  setViewport(swLng: number, swLat: number, neLng: number, neLat: number);
+  disconnect(): Promise<void>;
+}
+
 export default {
 
-  async connect(callback: (value: any) => void) {
+  async connect(callback: (value: PositionDto) => void): Promise<AssetConnection> {
+
+    const connection = new HubConnectionBuilder()
+      .withUrl('http://localhost:5000/positionhub')
+      .configureLogging(LogLevel.Debug)
+      .build();
 
     console.log('connecting');
     await connection.start();
@@ -37,15 +42,21 @@ export default {
       }
     });
 
-  },
+    return {
+      async setViewport(
+        swLng: number,
+        swLat: number,
+        neLng: number,
+        neLat: number
+      ) {
+        await connection.send('SetViewport', swLng, swLat, neLng, neLat);
+      },
 
-  async setViewport(
-    swLng: number,
-    swLat: number,
-    neLng: number,
-    neLat: number
-  ) {
-    await connection.send('SetViewport', swLng, swLat, neLng, neLat);
+      async disconnect() {
+        await connection.stop();
+      }
+    }
+
   },
 
 };

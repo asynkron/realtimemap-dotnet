@@ -1,19 +1,41 @@
 import { GetTrail } from "@/services/api-trail";
-import mapboxgl, { GeoJSONSource } from "mapbox-gl";
+import mapboxgl from "mapbox-gl";
+import { trySetGeoJsonSource } from "./mapUtils";
 
-export const addAssetTrails = async (map: mapboxgl.Map) => {
+export const addVehicleTrailLayer = async (map: mapboxgl.Map) => {
+
+  map.addSource('asset-route', {
+    type: 'geojson',
+    data: {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: [],
+      },
+    },
+  });
+
+  map.addLayer({
+    id: 'asset-route',
+    type: 'line',
+    source: 'asset-route',
+    layout: {
+      'line-join': 'round',
+      'line-cap': 'round',
+    },
+    paint: {
+      'line-color': '#ed4981',
+      'line-width': 8,
+    },
+  });
 
   let currentlySelectedAssetId: string | null = null;
 
-  function getAssetTrailSource() {
-    return map.getSource('asset-route') as GeoJSONSource;
-  }
-
   async function drawTrail(assetId: string) {
     const trail = await GetTrail(assetId);
-    const source = getAssetTrailSource();
 
-    source.setData({
+    trySetGeoJsonSource(map, 'asset-route', {
       type: 'Feature',
       properties: {},
       geometry: {
@@ -40,6 +62,9 @@ export const addAssetTrails = async (map: mapboxgl.Map) => {
     }
   });
 
-  setInterval(() => drawCurrentlySelectedAssetsTrail(), 2500);
+  setInterval(
+    () => drawCurrentlySelectedAssetsTrail(),
+    2500
+  );
 
-};
+}
