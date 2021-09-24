@@ -38,15 +38,15 @@ namespace Backend
                 var system = new ActorSystem(config);
                 
                 var vehicleProps = Props
-                    .FromProducer(() => new VehicleActorActor((c, _, _) =>
+                    .FromProducer(() => new VehicleActorActor((c, _) =>
                         ActivatorUtilities.CreateInstance<VehicleActor>(provider, c)));
                 
                 var organizationProps = Props
-                    .FromProducer(() => new OrganizationActorActor((c, _, _) =>
+                    .FromProducer(() => new OrganizationActorActor((c, _) =>
                         ActivatorUtilities.CreateInstance<OrganizationActor>(provider, c)));
                 
                 var globalViewportProps = Props
-                    .FromProducer(() => new GlobalViewportActorActor((c, _, _) =>
+                    .FromProducer(() => new GlobalViewportActorActor((c, _) =>
                         ActivatorUtilities.CreateInstance<GlobalViewportActor>(provider, c)));
                 
                 system
