@@ -10,7 +10,9 @@ namespace Backend.MQTT
 {
     public class HrtPositionsSubscription : IDisposable
     {
-        public static async Task<HrtPositionsSubscription> Start(Func<HrtPositionUpdate, Task> onPositionUpdate)
+        public static async Task<HrtPositionsSubscription> Start(
+            string sharedSubscriptionGroupName,
+            Func<HrtPositionUpdate, Task> onPositionUpdate)
         {
             var mqttClient = CreateMqttClient();
 
@@ -29,7 +31,8 @@ namespace Backend.MQTT
             {
                 Console.WriteLine("### CONNECTED WITH MQTT SERVER ###");
 
-                await mqttClient.SubscribeAsync("/hfp/v2/journey/ongoing/vp/bus/#");
+                // we subscribe to a group subscription, so messages are distributed between cluster nodes
+                await mqttClient.SubscribeAsync($"$share/{sharedSubscriptionGroupName}//hfp/v2/journey/ongoing/vp/bus/#");
 
                 Console.WriteLine("### SUBSCRIBED ###");
             });

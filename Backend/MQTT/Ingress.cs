@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Proto;
 using Proto.Cluster;
@@ -8,19 +9,31 @@ namespace Backend.MQTT
 {
     public class MqttIngress : IHostedService
     {
+        private readonly IConfiguration _configuration;
         private readonly Cluster _cluster;
 
         private HrtPositionsSubscription _hrtPositionsSubscription;
 
-        public MqttIngress(Cluster cluster)
+        public MqttIngress(IConfiguration configuration, Cluster cluster)
         {
+            _configuration = configuration;
             _cluster = cluster;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             _hrtPositionsSubscription = await HrtPositionsSubscription.Start(
+                sharedSubscriptionGroupName: GetSharedSubscriptionGroupName(),
                 onPositionUpdate: ProcessHrtPositionUpdate);
+        }
+
+        private string GetSharedSubscriptionGroupName()
+        {
+            var sharedSubscriptionGroupName = _configuration["RealtimeMap:SharedSubscriptionGroupName"];
+
+            return string.IsNullOrEmpty(sharedSubscriptionGroupName)
+                ? "group-{Guid.NewGuid()}"
+                : sharedSubscriptionGroupName;
         }
 
         private async Task ProcessHrtPositionUpdate(HrtPositionUpdate hrtPositionUpdate)
