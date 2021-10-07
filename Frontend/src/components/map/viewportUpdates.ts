@@ -1,28 +1,28 @@
-import { AssetConnection } from "@/signalr-hub";
+import { PositionsHubConnection } from "@/positionsHub";
 import { throttle } from "lodash";
 
-export const handleViewportUpdates = (map: mapboxgl.Map, assetConnection: AssetConnection) => {
+export const handleViewportUpdates = (map: mapboxgl.Map, connection: PositionsHubConnection) => {
 
   const throttledUpdateViewport = throttle(setViewport, 1000);
 
   map.on('zoomend', () => {
-    throttledUpdateViewport(map, assetConnection);
+    throttledUpdateViewport(map, connection);
   });
 
   map.on('move', () => {
-    throttledUpdateViewport(map, assetConnection);
+    throttledUpdateViewport(map, connection);
   });
 
   setTimeout(
-    () => setViewport(map, assetConnection),
+    () => setViewport(map, connection),
     500
   );
 
 }
 
-function setViewport(map: mapboxgl.Map, assetConnection: AssetConnection) {
+function setViewport(map: mapboxgl.Map, connection: PositionsHubConnection) {
   const bounds = map.getBounds();
   const sw = bounds.getSouthWest();
   const ne = bounds.getNorthEast();
-  assetConnection.setViewport(sw.lng, sw.lat, ne.lng, ne.lat);
+  connection.setViewport(sw.lng, sw.lat, ne.lng, ne.lat);
 }

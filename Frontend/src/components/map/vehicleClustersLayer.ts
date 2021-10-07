@@ -1,10 +1,12 @@
-import { AssetStates, mapAssetsToGeoJson } from "./assetStates";
+import { VehicleStates, mapVehiclesToGeoJson } from "./vehicleStates";
 import { trySetGeoJsonSource } from "./mapUtils";
 import { showMarkerLevel } from "./vehiclesLayer";
 
-export const addVehicleClustersLayer = (map: mapboxgl.Map, assetStates: AssetStates) => {
+const vehicleClusterSourceId = "vehicle-clusters";
 
-  map.addSource('assets-cluster', {
+export const addVehicleClustersLayer = (map: mapboxgl.Map, vehicleStates: VehicleStates) => {
+
+  map.addSource(vehicleClusterSourceId, {
     type: 'geojson',
     data: {
       type: 'FeatureCollection',
@@ -16,9 +18,9 @@ export const addVehicleClustersLayer = (map: mapboxgl.Map, assetStates: AssetSta
   });
 
   map.addLayer({
-    id: 'clusters',
+    id: "vehicle-cluster-layer",
     type: 'circle',
-    source: 'assets-cluster',
+    source: vehicleClusterSourceId,
     maxzoom: showMarkerLevel,
     filter: ['has', 'point_count'],
     paint: {
@@ -36,9 +38,9 @@ export const addVehicleClustersLayer = (map: mapboxgl.Map, assetStates: AssetSta
   });
 
   map.addLayer({
-    id: 'cluster-count',
+    id: 'vehicle-cluster-count-layer',
     type: 'symbol',
-    source: 'assets-cluster',
+    source: vehicleClusterSourceId,
     maxzoom: showMarkerLevel,
     filter: ['has', 'point_count'],
     layout: {
@@ -52,13 +54,13 @@ export const addVehicleClustersLayer = (map: mapboxgl.Map, assetStates: AssetSta
   });
 
   setInterval(
-    () => updateClusterLayers(map, assetStates),
+    () => updateClusterLayers(map, vehicleStates),
     5000
   );
 
 }
 
-function updateClusterLayers(map: mapboxgl.Map, assetStates: AssetStates) {
-  const data = mapAssetsToGeoJson(assetStates, () => true);
-  trySetGeoJsonSource(map, 'assets-cluster', data as any);
+function updateClusterLayers(map: mapboxgl.Map, vehicleStates: VehicleStates) {
+  const data = mapVehiclesToGeoJson(vehicleStates, () => true);
+  trySetGeoJsonSource(map, vehicleClusterSourceId, data as any);
 }

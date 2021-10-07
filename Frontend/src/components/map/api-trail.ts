@@ -1,7 +1,7 @@
-import { PositionsDto } from '@/signalr-hub'
+import { PositionsDto } from '@/positionsHub'
 import apiInstance from '../../services/api-base'
 
-export const GetTrail = async (assetId: string): Promise<PositionsDto> => {
-  const res = await apiInstance.get(`trail/${assetId}`)
+export const GetTrail = async (vehicleId: string): Promise<PositionsDto> => {
+  const res = await apiInstance.get(`trail/${vehicleId}`)
   return res?.data as PositionsDto
 }

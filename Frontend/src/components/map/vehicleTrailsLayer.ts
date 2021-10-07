@@ -1,10 +1,13 @@
 import { GetTrail } from "@/components/map/api-trail";
 import mapboxgl from "mapbox-gl";
 import { trySetGeoJsonSource } from "./mapUtils";
+import { vehicleLayerId } from "./vehiclesLayer";
+
+const vehicleTrailSourceId = "vehicle-trails";
 
 export const addVehicleTrailLayer = async (map: mapboxgl.Map) => {
 
-  map.addSource('asset-route', {
+  map.addSource(vehicleTrailSourceId, {
     type: 'geojson',
     data: {
       type: 'Feature',
@@ -17,9 +20,9 @@ export const addVehicleTrailLayer = async (map: mapboxgl.Map) => {
   });
 
   map.addLayer({
-    id: 'asset-route',
+    id: 'vehicle-trail-layer',
     type: 'line',
-    source: 'asset-route',
+    source: vehicleTrailSourceId,
     layout: {
       'line-join': 'round',
       'line-cap': 'round',
@@ -30,12 +33,12 @@ export const addVehicleTrailLayer = async (map: mapboxgl.Map) => {
     },
   });
 
-  let currentlySelectedAssetId: string | null = null;
+  let currentlySelectedVehicleId: string | null = null;
 
-  async function drawTrail(assetId: string) {
-    const trail = await GetTrail(assetId);
+  async function drawTrail(vehicleId: string) {
+    const trail = await GetTrail(vehicleId);
 
-    trySetGeoJsonSource(map, 'asset-route', {
+    trySetGeoJsonSource(map, vehicleTrailSourceId, {
       type: 'Feature',
       properties: {},
       geometry: {
@@ -47,23 +50,23 @@ export const addVehicleTrailLayer = async (map: mapboxgl.Map) => {
     });
   }
 
-  async function drawCurrentlySelectedAssetsTrail() {
-    if (currentlySelectedAssetId) {
-      drawTrail(currentlySelectedAssetId);
+  async function drawCurrentlySelectedVehicleTrail() {
+    if (currentlySelectedVehicleId) {
+      drawTrail(currentlySelectedVehicleId);
     }
   }
 
-  map.on('click', 'asset-layer', async (e: any) => {
+  map.on('click', vehicleLayerId, async (e: any) => {
     const features = map.queryRenderedFeatures(e.point);
     const feature = features[0];
     if (feature != null && feature.properties != null) {
-      currentlySelectedAssetId = feature.properties['asset-id'];
-      await drawCurrentlySelectedAssetsTrail();
+      currentlySelectedVehicleId = feature.properties.vehicleId;
+      await drawCurrentlySelectedVehicleTrail();
     }
   });
 
   setInterval(
-    () => drawCurrentlySelectedAssetsTrail(),
+    () => drawCurrentlySelectedVehicleTrail(),
     2500
   );
 

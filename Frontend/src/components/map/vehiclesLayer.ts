@@ -1,13 +1,15 @@
-import { GeoJSONSource } from "mapbox-gl";
-import { AssetStates, mapAssetsToGeoJson } from "./assetStates";
+import { VehicleStates, mapVehiclesToGeoJson } from "./vehicleStates";
 import { getBoundsWithMargin } from './boundsWithMargin';
 import { trySetGeoJsonSource } from "./mapUtils";
 
 export const showMarkerLevel = 12;
 
-export const addVehiclesLayer = (map: mapboxgl.Map, assetStates: AssetStates) => {
+const vehicleSourceId = "vehicles";
+export const vehicleLayerId = "vehicle-layer";
 
-  map.addSource('assets', {
+export const addVehiclesLayer = (map: mapboxgl.Map, vehicleStates: VehicleStates) => {
+
+  map.addSource(vehicleSourceId, {
     type: 'geojson',
     data: {
       type: 'FeatureCollection',
@@ -16,9 +18,9 @@ export const addVehiclesLayer = (map: mapboxgl.Map, assetStates: AssetStates) =>
   });
 
   map.addLayer({
-    id: 'asset-layer',
+    id: vehicleLayerId,
     type: 'symbol',
-    source: 'assets',
+    source: vehicleSourceId,
     minzoom: showMarkerLevel,
     layout: {
       'icon-image': ['get', 'icon'],
@@ -39,13 +41,13 @@ export const addVehiclesLayer = (map: mapboxgl.Map, assetStates: AssetStates) =>
   });
 
   setInterval(
-    () => updateAssetLayers(map, assetStates),
+    () => updateVehicleLayers(map, vehicleStates),
     1000
   );
 
 }
 
-function updateAssetLayers(map: mapboxgl.Map, assetStates: AssetStates) {
+function updateVehicleLayers(map: mapboxgl.Map, vehicleStates: VehicleStates) {
   if (map.getZoom() < showMarkerLevel) {
     return;
   }
@@ -53,9 +55,9 @@ function updateAssetLayers(map: mapboxgl.Map, assetStates: AssetStates) {
   // expand viewport so we ingest things just outside the bounds also.
   const biggerBounds = getBoundsWithMargin(map);
 
-  const data = mapAssetsToGeoJson(assetStates, (asset) =>
-    biggerBounds.contains(asset.currentPosition)
+  const data = mapVehiclesToGeoJson(vehicleStates, vehicle =>
+    biggerBounds.contains(vehicle.currentPosition)
   );
 
-  trySetGeoJsonSource(map, "assets", data as any);
+  trySetGeoJsonSource(map, vehicleSourceId, data as any);
 }
