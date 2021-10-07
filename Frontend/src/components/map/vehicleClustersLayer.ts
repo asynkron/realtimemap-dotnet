@@ -62,5 +62,5 @@ export const addVehicleClustersLayer = (map: mapboxgl.Map, vehicleStates: Vehicl
 
 function updateClusterLayers(map: mapboxgl.Map, vehicleStates: VehicleStates) {
   const data = mapVehiclesToGeoJson(vehicleStates, () => true);
-  trySetGeoJsonSource(map, vehicleClusterSourceId, data as any);
+  trySetGeoJsonSource(map, vehicleClusterSourceId, data);
 }

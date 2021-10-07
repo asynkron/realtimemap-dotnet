@@ -1,6 +1,6 @@
 import mapboxgl, { GeoJSONSource } from "mapbox-gl";
 
-type GeoJSONSourceData = GeoJSON.Feature<GeoJSON.Geometry> | GeoJSON.FeatureCollection<GeoJSON.Geometry>;
+export type GeoJSONSourceData = GeoJSON.Feature<GeoJSON.Geometry> | GeoJSON.FeatureCollection<GeoJSON.Geometry>;
 
 export const trySetGeoJsonSource = (map: mapboxgl.Map, sourceId: string, data: GeoJSONSourceData) => {
   const source = map.getSource(sourceId) as GeoJSONSource;

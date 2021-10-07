@@ -59,5 +59,5 @@ function updateVehicleLayers(map: mapboxgl.Map, vehicleStates: VehicleStates) {
     biggerBounds.contains(vehicle.currentPosition)
   );
 
-  trySetGeoJsonSource(map, vehicleSourceId, data as any);
+  trySetGeoJsonSource(map, vehicleSourceId, data);
 }

@@ -1,5 +1,6 @@
 import { PositionDto } from "@/positionsHub";
 import { getBoundsWithMargin } from './boundsWithMargin';
+import { GeoJSONSourceData } from "./mapUtils";
 
 // const stepsInAnimation = 10;
 
@@ -112,7 +113,7 @@ function updateVehicleFromEvent(
 export function mapVehiclesToGeoJson(
   vehicleStates: VehicleStates,
   predicate: (vehicleState: VehicleState) => boolean
-) {
+): GeoJSONSourceData {
   return {
     type: 'FeatureCollection',
     features: Object.values(vehicleStates)
