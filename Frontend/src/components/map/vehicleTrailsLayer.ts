@@ -1,4 +1,4 @@
-import { GetTrail } from "@/services/api-trail";
+import { GetTrail } from "@/components/map/api-trail";
 import mapboxgl from "mapbox-gl";
 import { trySetGeoJsonSource } from "./mapUtils";
 

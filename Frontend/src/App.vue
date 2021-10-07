@@ -14,8 +14,8 @@ import { defineComponent } from 'vue';
 
 import TopBar from './components/TopBar.vue';
 import Map from './components/map/Map.vue';
-import GeofencingPanel from './components/GeofencingPanel.vue';
-import GeofencingNotifications from './components/GeofencingNotifications.vue';
+import GeofencingPanel from './components/geofencing/GeofencingPanel.vue';
+import GeofencingNotifications from './components/geofencing/GeofencingNotifications.vue';
 import { Geofence } from "./components/map/geofencesLayer"
 
 export default defineComponent({
@@ -46,6 +46,8 @@ export default defineComponent({
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
 }
+
+/* toast messages need to be styled globally */
 
 .p-toast-message-icon.pi.pi-info-circle:before {
   content: "\e971" !important;

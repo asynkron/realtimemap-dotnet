@@ -1,4 +1,4 @@
-import apiInstance from './api-base';
+import apiInstance from '../../services/api-base';
 
 export interface OrganizationDto {
   id: string;

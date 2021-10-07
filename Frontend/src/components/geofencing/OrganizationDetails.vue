@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { OrganizationDetailsDto } from './../services/api-organization';
+import { OrganizationDetailsDto } from './api-organization';
 import GeofenceDetails from "./GeofenceDetails.vue"
 
 export default defineComponent({

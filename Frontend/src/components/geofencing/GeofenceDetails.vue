@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { GeofenceDto } from './../services/api-organization';
+import { GeofenceDto } from './api-organization';
 
 export default defineComponent({
 

@@ -24,7 +24,7 @@ import {
   OrganizationDto,
   OrganizationDetailsDto,
   getDetails,
-} from '../services/api-organization';
+} from './api-organization';
 import OrganizationDetails from './OrganizationDetails.vue';
 
 export default defineComponent({
