@@ -50,12 +50,3 @@ message GetGeofencesRequest {
 message GetGeofencesResponse {
   repeated GeofenceDetails geofences = 1;
 }
-
-
-message GetTrailRequest {
-    string asset_id = 1;
-}
-
-message GetTrailResponse {
-    PositionBatch position_batch = 1; 
-}

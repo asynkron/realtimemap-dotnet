@@ -18,11 +18,11 @@ namespace Backend.Controllers
             _cluster = cluster;
         }
 
-        [HttpGet("{assetId}")]
-        public async Task<ActionResult<PositionsDto>> Get(string assetId)
+        [HttpGet("{vehicleId}")]
+        public async Task<ActionResult<PositionsDto>> Get(string vehicleId)
         {
             var positionsHistory = await _cluster
-                .GetVehicleActor(assetId)
+                .GetVehicleActor(vehicleId)
                 .GetPositionsHistory(new GetPositionsHistoryRequest(), CancellationToken.None);
             
             var positions = positionsHistory.Positions
