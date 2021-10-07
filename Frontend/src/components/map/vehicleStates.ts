@@ -98,7 +98,7 @@ function updateVehicleFromEvent(
 
   if (positionDto.doorsOpen) {
     //console.log("doors open...")
-    vehicleState.icon = 'doorsopen';
+    vehicleState.icon = 'doors-open';
   } else if (
     (positionDto.speed != undefined && positionDto.speed > 0) ||
     vehicleState.shouldAnimate

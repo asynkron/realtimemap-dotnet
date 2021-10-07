@@ -30,14 +30,14 @@ export const addVehiclesLayer = (map: mapboxgl.Map, vehicleStates: VehicleStates
     },
   });
 
-  map.loadImage('/bus.png', (error, image) => {
+  map.loadImage('/vehicle-moving.png', (error, image) => {
     if (error) throw error;
     map.addImage('moving', image);
   });
 
-  map.loadImage('/doorsopen.png', (error, image) => {
+  map.loadImage('/vehicle-doors-open.png', (error, image) => {
     if (error) throw error;
-    map.addImage('doorsopen', image);
+    map.addImage('doors-open', image);
   });
 
   setInterval(
