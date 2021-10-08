@@ -1,4 +1,5 @@
 import mapboxgl from "mapbox-gl";
+import { Point } from "geojson";
 import { vehicleLayerId } from "./vehiclesLayer";
 
 export const addVehicleDetailsPopup = (map: mapboxgl.Map) => {
@@ -8,12 +9,14 @@ export const addVehicleDetailsPopup = (map: mapboxgl.Map) => {
     closeOnClick: false,
   });
 
-  map.on('mouseenter', vehicleLayerId, (e: any) => {
+  map.on('mouseenter', vehicleLayerId, e => {
+    if (!e.features || e.features.length < 1) return;
+
     // Change the cursor style as a UI indicator.
     map.getCanvas().style.cursor = 'pointer';
 
-    const coordinates = e.features[0].geometry.coordinates.slice();
-    const description = e.features[0].properties.vehicleId;
+    const coordinates = (e.features[0].geometry as Point).coordinates as [number, number];
+    const description = e.features[0].properties?.vehicleId;
 
     // Ensure that if the map is zoomed out such that multiple
     // copies of the feature are visible, the popup appears

@@ -1,4 +1,4 @@
-import { HubConnectionBuilder, LogLevel } from '@aspnet/signalr';
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 
 export interface PositionsDto {
   positions: PositionDto[];
@@ -15,8 +15,8 @@ export interface PositionDto {
 
 export interface HubConnection {
   setViewport(swLng: number, swLat: number, neLng: number, neLat: number);
-  onPositions(callback: (positions: PositionsDto) => any);
-  onNotification(callback: (notification: string) => any);
+  onPositions(callback: (positions: PositionsDto) => void);
+  onNotification(callback: (notification: string) => void);
   disconnect(): Promise<void>;
 }
 
@@ -25,6 +25,7 @@ export const connectToHub = async (): Promise<HubConnection> => {
   const connection = new HubConnectionBuilder()
     .withUrl('http://localhost:5000/events')
     .configureLogging(LogLevel.Debug)
+    .withAutomaticReconnect()
     .build();
 
   console.log('connecting');
@@ -45,16 +46,14 @@ export const connectToHub = async (): Promise<HubConnection> => {
       await connection.send("SetViewport", swLng, swLat, neLng, neLat);
     },
 
-    onPositions(callback: (PositionsDto) => void){
+    onPositions(callback: (PositionsDto) => void) {
       connection.on("positions", (positions: PositionsDto) => {
-        console.log(`Got batch of positions ${positions.positions.length}`);
         callback(positions);
       });
     },
 
-    onNotification(callback: (notification: string) => any) {
+    onNotification(callback: (notification: string) => void) {
       connection.on("notification", (notification: string) => {
-        console.log(`Got notification ${notification}`);
         callback(notification);
       });
     },
