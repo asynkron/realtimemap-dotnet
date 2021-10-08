@@ -1,7 +1,7 @@
-import { PositionsHubConnection } from "@/positionsHub";
+import { HubConnection } from "@/hub";
 import { throttle } from "lodash";
 
-export const handleViewportUpdates = (map: mapboxgl.Map, connection: PositionsHubConnection) => {
+export const handleViewportUpdates = (map: mapboxgl.Map, connection: HubConnection) => {
 
   const throttledUpdateViewport = throttle(setViewport, 1000);
 
@@ -20,7 +20,7 @@ export const handleViewportUpdates = (map: mapboxgl.Map, connection: PositionsHu
 
 }
 
-function setViewport(map: mapboxgl.Map, connection: PositionsHubConnection) {
+function setViewport(map: mapboxgl.Map, connection: HubConnection) {
   const bounds = map.getBounds();
   const sw = bounds.getSouthWest();
   const ne = bounds.getNorthEast();

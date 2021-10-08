@@ -6,7 +6,6 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { connectToPositionsHub, PositionsHubConnection } from '@/positionsHub';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxConfig from '@/mapboxConfig';
@@ -17,6 +16,7 @@ import { addVehicleDetailsPopup } from './vehicleDetailsPopup';
 import { addVehiclesLayer } from './vehiclesLayer';
 import { addVehicleClustersLayer } from './vehicleClustersLayer';
 import { handleViewportUpdates } from './viewportUpdates';
+import { HubConnection} from "@/hub";
 
 export default defineComponent({
   name: 'Map',
@@ -25,18 +25,21 @@ export default defineComponent({
     geofences: {
       type: Array as PropType<Geofence[]>,
       require: true
+    },
+    hubConnection: {
+      type: Object as PropType<HubConnection>,
+      require: true
     }
   },
 
   data() {
     return {
       // it will be set in mounted and available later on
-      map: undefined as unknown as mapboxgl.Map,
-      positionsHubConnection: undefined as unknown as PositionsHubConnection
+      map: undefined as unknown as mapboxgl.Map
     }
   },
 
-  async mounted() {
+  mounted() {
     mapboxgl.accessToken = mapboxConfig.getAccessToken();
 
     this.map = new mapboxgl.Map({
@@ -48,9 +51,14 @@ export default defineComponent({
 
     const vehicleStates: VehicleStates = {};
 
-    this.positionsHubConnection = await connectToPositionsHub((positionDto) => {
-      handlePositionEvent(vehicleStates, positionDto);
-    });
+    if(this.hubConnection !== undefined) {
+      this.hubConnection.onPositions(positions => {
+        for(const position of positions.positions) {
+          handlePositionEvent(vehicleStates, position);
+        }
+      })
+
+    }
 
     this.map.on('load', () => {
 
@@ -61,7 +69,8 @@ export default defineComponent({
 
       addVehicleDetailsPopup(this.map);
 
-      handleViewportUpdates(this.map, this.positionsHubConnection);
+      if(this.hubConnection !== undefined)
+        handleViewportUpdates(this.map, this.hubConnection);
 
       setInterval(
         () => clearVehiclesOutsideOfViewbox(this.map, vehicleStates),
@@ -70,10 +79,6 @@ export default defineComponent({
 
     });
 
-  },
-
-  async unmounted() {
-    await this.positionsHubConnection.disconnect();
   },
 
   watch: {

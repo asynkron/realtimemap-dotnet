@@ -1,4 +1,4 @@
-import { PositionsDto } from '@/positionsHub'
+import { PositionsDto } from '@/hub'
 import apiInstance from '../../services/api-base'
 
 export const GetTrail = async (vehicleId: string): Promise<PositionsDto> => {

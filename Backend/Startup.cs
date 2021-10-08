@@ -89,9 +89,8 @@ namespace Backend
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<EventsHub>("/events");
                 endpoints.MapControllers();
-                endpoints.MapHub<PositionsHub>("/positionhub");
-                endpoints.MapHub<GeofencingNotificationsHub>("/geofencingNotificationsHub");
             });
         }
     }

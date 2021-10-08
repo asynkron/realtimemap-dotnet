@@ -13,15 +13,17 @@ export interface PositionDto {
   doorsOpen: boolean;
 }
 
-export interface PositionsHubConnection {
+export interface HubConnection {
   setViewport(swLng: number, swLat: number, neLng: number, neLat: number);
+  onPositions(callback: (positions: PositionsDto) => any);
+  onNotification(callback: (notification: string) => any);
   disconnect(): Promise<void>;
 }
 
-export const connectToPositionsHub = async (callback: (value: PositionDto) => void): Promise<PositionsHubConnection> => {
+export const connectToHub = async (): Promise<HubConnection> => {
 
   const connection = new HubConnectionBuilder()
-    .withUrl('http://localhost:5000/positionhub')
+    .withUrl('http://localhost:5000/events')
     .configureLogging(LogLevel.Debug)
     .build();
 
@@ -33,13 +35,6 @@ export const connectToPositionsHub = async (callback: (value: PositionDto) => vo
     console.log('connection closed');
   });
 
-  connection.on("positions", (positions: PositionsDto) => {
-    console.log(`Got batch of positions ${positions.positions.length}`);
-    for (const position of positions.positions) {
-      callback(position);
-    }
-  });
-
   return {
     async setViewport(
       swLng: number,
@@ -47,7 +42,21 @@ export const connectToPositionsHub = async (callback: (value: PositionDto) => vo
       neLng: number,
       neLat: number
     ) {
-      await connection.send('SetViewport', swLng, swLat, neLng, neLat);
+      await connection.send("SetViewport", swLng, swLat, neLng, neLat);
+    },
+
+    onPositions(callback: (PositionsDto) => void){
+      connection.on("positions", (positions: PositionsDto) => {
+        console.log(`Got batch of positions ${positions.positions.length}`);
+        callback(positions);
+      });
+    },
+
+    onNotification(callback: (notification: string) => any) {
+      connection.on("notification", (notification: string) => {
+        console.log(`Got notification ${notification}`);
+        callback(notification);
+      });
     },
 
     async disconnect() {
