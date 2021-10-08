@@ -1,4 +1,4 @@
-import { PositionDto } from "@/positionsHub";
+import { PositionDto } from '@/hub';
 import { getBoundsWithMargin } from './boundsWithMargin';
 import { GeoJSONSourceData } from "./mapUtils";
 

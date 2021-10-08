@@ -3,29 +3,37 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { connectToGeofencingNotificationsHub } from './geofencingNotificationsHub';
+import { HubConnection } from '@/hub';
+import { defineComponent, PropType } from 'vue';
 
 export default defineComponent({
   name: 'GeofencingNotifications ',
 
+  props: {
+    hubConnection: {
+      type: Object as PropType<HubConnection>,
+      require: true
+    }
+  },
+
   mounted() {
-    connectToGeofencingNotificationsHub(notification => {
-      // todo: message type should be passed via proprty
-      if (notification.includes("entered")) {
-        this.$toast.add({
-          severity:'success',
-          detail: notification,
-          life: 3000
-        });
-      } else {
-        this.$toast.add({
-          severity:'info',
-          detail: notification,
-          life: 3000
-        });
-      }
-    });
+    if (this.hubConnection !== undefined) {
+      this.hubConnection.onNotification(notification => {
+        if (notification.includes("entered")) {
+          this.$toast.add({
+              severity:'success',
+              detail: notification,
+              life: 3000
+            });
+          } else {
+            this.$toast.add({
+              severity:'info',
+              detail: notification,
+              life: 3000
+            });
+          }
+      });
+    }
   }
 });
 </script>
