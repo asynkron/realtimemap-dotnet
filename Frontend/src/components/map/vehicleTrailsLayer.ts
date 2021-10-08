@@ -56,7 +56,7 @@ export const addVehicleTrailLayer = async (map: mapboxgl.Map) => {
     }
   }
 
-  map.on('click', vehicleLayerId, async (e: any) => {
+  map.on('click', vehicleLayerId, async e => {
     const features = map.queryRenderedFeatures(e.point);
     const feature = features[0];
     if (feature != null && feature.properties != null) {
