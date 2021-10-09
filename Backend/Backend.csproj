@@ -7,7 +7,6 @@
     <ItemGroup>
         <PackageReference Include="GeoCoordinate.NetCore" Version="1.0.0.1" />
         <PackageReference Include="Grpc.AspNetCore" Version="2.34.0" />
-        <PackageReference Include="IsExternalInit.System.Runtime.CompilerServices" Version="1.0.0" />
         <PackageReference Include="JetBrains.Annotations" Version="2021.2.0-eap2" />
         <PackageReference Include="MQTTnet" Version="3.0.16" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
