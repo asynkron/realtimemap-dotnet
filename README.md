@@ -73,29 +73,31 @@ This data is licensed under © Helsinki Region Transport 2021, Creative Commons 
 
 In our app, `Ingress` is a [hosted service](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services?view=aspnetcore-5.0&tabs=visual-studio) responsible for subscribing to Helsinki Region Transport MQTT server and handling vehicle position updates.
 
-### Vehicle
+### Vehicles
 
 When creating a system with actors, is common to model real-world physical objects as actors. We'll start by modeling a vehicle since all the features depend on it. It will be implemented as a virtual actor (`VehicleActor`). It will be responsible for handling events related to that vehicle and remembering its state, e.g. its current position and position history.
 
 Quick info on virtual actors:
 1. Each virtual actor is of a specific kind, in this case, it's `Vehicle`.
-1. Each virtual actor has an ID, in this case, it's an actual vehicle's number.
-1. Virtual actors can have state, in this case, vehicle's current position and position history.
-1. Virtual actors handle messages sent to them one by one, meaning we don't have to worry about synchronization.
-1. Virtual actors are distributed in the cluster. In normal circumstances, a single virtual actor (in this case a specific vehicle) will be hosted on a single node.
-1. We don't need to spawn (create) virtual actors explicitly. They will be spawned automatically on **one of the nodes** the first time a message is sent to them.
-1. To communicate with a virtual actor we only need to know its kind and ID. We don't have to care about which node it's hosted on.
+2. Each virtual actor has an ID, in this case, it's an actual vehicle's number.
+3. Virtual actors can have state, in this case, vehicle's current position and position history.
+4. Virtual actors handle messages sent to them one by one, meaning we don't have to worry about synchronization.
+5. Virtual actors are distributed in the cluster. In normal circumstances, a single virtual actor (in this case a specific vehicle) will be hosted on a single node.
+6. We don't need to spawn (create) virtual actors explicitly. They will be spawned automatically on **one of the nodes** the first time a message is sent to them.
+7. To communicate with a virtual actor we only need to know its kind and ID. We don't have to care about which node it's hosted on.
 
-The workflow looks like that:
+_Note: virtual actors are sometimes referred to as "grains" - terminology originating in the MS Orleans project._
+
+The workflow looks like this:
 1. `Ingress` receives an event from Helsinki Region Transport MQTT server.
 1. `Ingress` reads vehicle's ID and its new position from the event and sends it to a vehicle in question.
 1. `VehicleActor` processes the message.
 
-![vehicles only in a cluster drawio](https://user-images.githubusercontent.com/1219044/135428716-8f11ba87-807e-4365-a61d-1e957f5c8013.png)
+![vehicles only in a cluster drawio](docs/hrt%20ingress%20vehicles.drawio.png)
 
 Notice, that in the above diagram, vehicles (virtual actors) are distributed between two nodes, however, `Ingress` is present in both of the nodes.
 
-### Organizations and geofencing notifications
+### Organizations
 
 Let's consider the following feature: in this app, each vehicle belongs to an organization. Each organization has a specified list of geofences. In our case, a geofence is simply a circular area somewhere in Helsinki, e.g. airport, railway square, or downtown. Users should receive notifications when a vehicle enters or leaves a geofence (from that vehicle's organization).
 
@@ -107,30 +109,41 @@ Quick info on child actors:
 1. After spawning a child actor, its PID is stored in the parent actor. Think of it as a reference to an actor: you can use it to communicate with it.
 1. Since parent actor has PIDs of their child actors, it can easily communicate with them.
 1. Technically, we can communicate with a child actor using their PID from anywhere within the cluster. This functionality is not utilized in this app, though.
+1. Child actor lifecycle is bound to the parent that spawned it. It will be stopped when parent gets stopped.
 
-The workflow looks like that:
+The workflow looks like this:
 1. `VehicleActor` receives a position update.
 1. `VehicleActor` forwards position update to its organization.
 1. `OrganizationActor` forwards position update to all its geofences.
 1. Each `GeofenceActor` keeps track of which vehicles are already inside the zone. Thanks to this, `GeofenceActor` can detect if a vehicle entered or left the geofence.
 
-![organization geofences only drawio](https://user-images.githubusercontent.com/1219044/135451697-fda8d6c9-33b1-4069-a22a-b42c453f9887.png)
+![organization geofences only drawio](docs/vehicles%20organizations%20geofences.drawio.png)
+
+### Viewport, positions and notifications
 
 So far we've only sent messages to and between actors. However, if we want to send notifications to actual users, we need to find a way to communicate between the actor system and the outside world. In this case, we'll use:
 1. SignalR to push notifications to users.
-1. Proto.Actor's `EventStream` to mediate between actors and SignalR hubs.
-
-`EventStream` lets us broadcast events across the cluster.
+1. Proto.Actor's ability to broadcast messages cluster-wide by means of the `EventStream`.
 
 [Learn more about EventStream here.](https://proto.actor/docs/eventstream/)
 
-The workflow looks like that:
-1. A user connects to `GeofencingNotificationsHub` (a SignalR hub). The hub subscribes to `EventStream` for geofencing notifications.
-1. `GeofenceActor` detects that a vehicle entered or left it.
-1. `GeofenceActor` sends a notification to the `EventStream`.
-1. `GeofencingNotificationsHub` receives a notification and forwards it to the connected user.
+First we'll introduce the `ViewportActor`. It models the user's ability to view positions of vehicles and geofencing notifications. `ViewportActor` will be implemented as an actor (i.e. non-virtual actor).
 
-![geofence event stream hub drawio](https://user-images.githubusercontent.com/1219044/135593402-8bef5dfd-4379-4786-9dee-c7c2f2810a57.png)
+Quick info on actors:
+1. An actor's lifecycle is not managed, meaning we have to manually spawn and stop them.
+1. An actor will be hosted on the same node that spawned it. Like with child actors, this gives us performance benefits when communicating with an actor.
+1. Since an actor lives in the name node (i.e. the same process), we can pass .NET references to it. It will come in handy in this feature.
+1. After spawning an actor, we receive its PID. Think of it as a reference to an actor: you can use it to communicate with it. Don't lose it!
+1. Technically, we can communicate with an actor using their PID from anywhere within the cluster. This functionality is not utilized in this app, though.
+
+The workflow looks like this:
+1. When user connects to SignalR hub, a viewport actor is spawned to represent the connection. Delegates to send the positions and notifications back to the user are provided to the actor upon creation.
+1. When starting, the viewport actor subscribes to `Position` and `Notification` events being broadcasted through the `EventStream`. It also makes sure to unsubscribe when stopping.
+1. When user pans the map, updates of the visible area bounds (south-west and north-east coords) are sent to the viewport actor through SignalR connection. The actor keeps track of the visible area to filter out positions.
+1. Geofence actor detects vehicle entering or leaving the geofencing zone. These events are broadcasted as `Notification` message to all cluster members and available through `EventStream` on each member. Same goes for `Position` events broadcasted from vehicle actor.
+1. When receiving a `Notification` message, viewport actor will push it to the user via SignalR connection. It will do the same with `Position` message provided it is within currently visible area on the map. The positions are sent in batches to improve performance.
+
+![viewport and event stream drawio](docs/viewport%20and%20event%20stream.drawio.png)
 
 ### Getting vehicles currently in an organization's geofences
 
@@ -146,44 +159,4 @@ The workflow looks like that:
 1. `OrganizationActor` combines that information into a response and returns it to `OrganizationController`.
 1. `OrganizationController` maps and returns the results to the user.
 
-![getting vehicles in the org drawio](https://user-images.githubusercontent.com/1219044/135594009-faa874fb-1784-4d51-ad39-fd52093edf08.png)
-
-### Viewport and position updates
-
-Let's consider the following feature: we want to display vehicles moving on the map to a user. What's more, we only want to send position updates regarding vehicles in the part of the map that a user sees, i.e. user's _viewport_.
-
-Again, we'll model a viewport using actors (`ViewportActor`). It will be spawned when a user connects and stopped when that user disconnects. It will be responsible for:
-1. Receiving all position updates.
-1. Forwarding to the user only the updates that are within its coordinates.
-1. Also, a user will be able to update the viewport after moving around the map.
-
-`ViewportActor` will be implemented as an actor (i.e. non-virtual actor).
-
-Quick info on actors:
-1. An actor's lifecycle is not managed, meaning we have to manually spawn and stop them.
-1. An actor will be hosted on the same node that spawned it. Like with child actors, this gives us performance benefits when communicating with an actor.
-1. Since an actor lives in the name node (i.e. the same process), we can pass .NET references to it. It will come in handy in this feature.
-1. After spawning an actor, we receive its PID. Think of it as a reference to an actor: you can use it to communicate with it. Don't lose it!
-1. Technically, we can communicate with an actor using their PID from anywhere within the cluster. This functionality is not utilized in this app, though.
-
-The actor locality is illustrated in the following diagram:
-
-![viewport on same node as hub drawio](https://user-images.githubusercontent.com/1219044/135458789-16198a30-7efd-4342-8470-24966896c953.png)
-
-The workflow looks like that:
-1. When a user connects to `PositionsHub`:
-    1. `PositionsHub` spawns `ViewportActor`.
-    1. `PositionsHub` subscribes `ViewportActor` to position updates from `EventStream`.
-    1. A user sends the initial viewport coordinates. `PositionsHub` forwards new coordinates to `ViewportActor`.
-1. When `VehicleActor` receives a position update:
-    1. `VehicleActor` forwards position update to `EventStream`.
-    1. `ViewportActor` receives the update and forwards it to a channel if that position is within its coordinates.
-    1. `PositionsHub` receives a position update from the channel and forwards it to the user.
-1. When the user moves the map:
-    1. The user sends the updated viewport coordinates to `PositionsHub`.
-    1. `PositionsHub` sends updated viewport coordinates to `ViewportActor`.
-1. When the user disconnects:
-    1. `PositionsHub` unsubscribes `ViewportActor` from `EventStream`.
-    1. `PositionsHub` stops `ViewportActor`.   
-
-![vehicle positions drawio](https://user-images.githubusercontent.com/1219044/135593559-a706b7b9-104a-4698-b4fa-85953580a5d9.png)
+![getting vehicles in the org drawio](docs/getting%20vehicles%20in%20geofence.drawio.png)
