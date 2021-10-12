@@ -14,7 +14,6 @@
         <PackageReference Include="Proto.Cluster.CodeGen" Version="0.24.1-alpha.0.23" />
         <PackageReference Include="Proto.Cluster.TestProvider" Version="0.24.1-alpha.0.23" />
         <PackageReference Include="Proto.Remote.GrpcCore" Version="0.24.1-alpha.0.23" />
-        <PackageReference Include="System.Interactive.Async" Version="5.0.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -23,11 +22,6 @@
 
     <ItemGroup>
         <Protobuf Include="Messages.proto" AdditionalImportDirs="." />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Remove="Hubs\GeofencingNotificationsHub.cs" />
-      <Compile Remove="Hubs\PositionsHub.cs" />
     </ItemGroup>
 
 </Project>
