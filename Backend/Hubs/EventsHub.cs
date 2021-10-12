@@ -21,14 +21,14 @@ namespace Backend.Hubs
             _cluster = cluster;
             
             // since the Hub is scoped per request, we need the IHubContext to be able to
-            // push messages from the Viewport actor
+            // push messages from the User actor
             _eventsHubContext = eventsHubContext;
         }
 
-        private PID ViewportActorPid
+        private PID UserActorPid
         {
-            get => Context.Items["viewport-pid"] as PID;
-            set => Context.Items["viewport-pid"] = value;
+            get => Context.Items["user-pid"] as PID;
+            set => Context.Items["user-pid"] = value;
         }
 
         public override Task OnConnectedAsync()
@@ -36,8 +36,8 @@ namespace Backend.Hubs
             Console.WriteLine($"Client {Context.ConnectionId} connected");
 
             var connectionId = Context.ConnectionId;
-            ViewportActorPid = _cluster.System.Root.Spawn(
-                Props.FromProducer(() => new ViewportActor(
+            UserActorPid = _cluster.System.Root.Spawn(
+                Props.FromProducer(() => new UserActor(
                     batch => SendPositionBatch(connectionId, batch),
                     notification => SendNotification(connectionId, notification)
                 ))
@@ -50,7 +50,7 @@ namespace Backend.Hubs
         {
             Console.WriteLine($"Client {Context.ConnectionId} setting viewport to ({swLat}, {swLng}),({neLat}, {neLng})");
 
-            _cluster.System.Root.Send(ViewportActorPid, new UpdateViewport
+            _cluster.System.Root.Send(UserActorPid, new UpdateViewport
             {
                 Viewport = new Viewport
                 {
@@ -78,7 +78,7 @@ namespace Backend.Hubs
         {
             Console.WriteLine($"Client {Context.ConnectionId} disconnected");
 
-            await _cluster.System.Root.StopAsync(ViewportActorPid);
+            await _cluster.System.Root.StopAsync(UserActorPid);
         }
     }
 }

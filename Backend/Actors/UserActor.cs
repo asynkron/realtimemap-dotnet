@@ -11,7 +11,7 @@ namespace Backend.Actors
 
     public delegate Task SendNotification(Notification notification);
 
-    public class ViewportActor : IActor
+    public class UserActor : IActor
     {
         const int PositionBatchSize = 10;
 
@@ -22,7 +22,7 @@ namespace Backend.Actors
         private EventStreamSubscription<object> _notificationSubscription;
         private EventStreamSubscription<object> _positionSubscription;
 
-        public ViewportActor(SendPositionBatch sendPositionBatch, SendNotification sendNotification)
+        public UserActor(SendPositionBatch sendPositionBatch, SendNotification sendNotification)
         {
             _sendPositionBatch = sendPositionBatch;
             _sendNotification = sendNotification;

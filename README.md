@@ -127,21 +127,21 @@ So far we've only sent messages to and between actors. However, if we want to se
 
 [Learn more about EventStream here.](https://proto.actor/docs/eventstream/)
 
-First we'll introduce the `ViewportActor`. It models the user's ability to view positions of vehicles and geofencing notifications. `ViewportActor` will be implemented as an actor (i.e. non-virtual actor).
+First we'll introduce the `UserActor`. It models the user's ability to view positions of vehicles and geofencing notifications. `UserActor` will be implemented as an actor (i.e. non-virtual actor).
 
 Quick info on actors:
 1. An actor's lifecycle is not managed, meaning we have to manually spawn and stop them.
 1. An actor will be hosted on the same node that spawned it. Like with child actors, this gives us performance benefits when communicating with an actor.
-1. Since an actor lives in the name node (i.e. the same process), we can pass .NET references to it. It will come in handy in this feature.
+1. Since an actor lives in the same node (i.e. the same process), we can pass .NET references to it. It will come in handy in this feature.
 1. After spawning an actor, we receive its PID. Think of it as a reference to an actor: you can use it to communicate with it. Don't lose it!
 1. Technically, we can communicate with an actor using their PID from anywhere within the cluster. This functionality is not utilized in this app, though.
 
 The workflow looks like this:
-1. When user connects to SignalR hub, a viewport actor is spawned to represent the connection. Delegates to send the positions and notifications back to the user are provided to the actor upon creation.
-1. When starting, the viewport actor subscribes to `Position` and `Notification` events being broadcasted through the `EventStream`. It also makes sure to unsubscribe when stopping.
-1. When user pans the map, updates of the visible area bounds (south-west and north-east coords) are sent to the viewport actor through SignalR connection. The actor keeps track of the visible area to filter out positions.
+1. When user connects to SignalR hub, user actor is spawned to represent the connection. Delegates to send the positions and notifications back to the user are provided to the actor upon creation.
+1. When starting, the user actor subscribes to `Position` and `Notification` events being broadcasted through the `EventStream`. It also makes sure to unsubscribe when stopping.
+1. When user pans the map, updates of the viewport (south-west and north-east coords of the visible area on the map) are sent to the user actor through SignalR connection. The actor keeps track of the viewport to filter out positions.
 1. Geofence actor detects vehicle entering or leaving the geofencing zone. These events are broadcasted as `Notification` message to all cluster members and available through `EventStream` on each member. Same goes for `Position` events broadcasted from vehicle actor.
-1. When receiving a `Notification` message, viewport actor will push it to the user via SignalR connection. It will do the same with `Position` message provided it is within currently visible area on the map. The positions are sent in batches to improve performance.
+1. When receiving a `Notification` message, user actor will push it to the user via SignalR connection. It will do the same with `Position` message provided it is within currently visible area on the map. The positions are sent in batches to improve performance.
 
 ![viewport and event stream drawio](docs/viewport%20and%20event%20stream.drawio.png)
 
