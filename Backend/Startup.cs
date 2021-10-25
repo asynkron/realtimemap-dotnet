@@ -28,46 +28,47 @@ namespace Backend
             services.AddSingleton(provider =>
             {
                 var clusterName = "MyCluster";
-            
+
                 var config = ActorSystemConfig
                     .Setup()
                     .WithDeadLetterThrottleCount(3)
                     .WithDeadLetterThrottleInterval(TimeSpan.FromSeconds(1))
                     .WithDeveloperSupervisionLogging(false);
-            
+
                 var system = new ActorSystem(config);
-                
+
                 var vehicleProps = Props
                     .FromProducer(() => new VehicleActorActor((c, _) =>
                         ActivatorUtilities.CreateInstance<VehicleActor>(provider, c)));
-                
+
                 var organizationProps = Props
                     .FromProducer(() => new OrganizationActorActor((c, _) =>
                         ActivatorUtilities.CreateInstance<OrganizationActor>(provider, c)));
-                
+
                 var globalViewportProps = Props
                     .FromProducer(() => new GlobalViewportActorActor((c, _) =>
                         ActivatorUtilities.CreateInstance<GlobalViewportActor>(provider, c)));
-                
+
                 system
                     .WithServiceProvider(provider)
                     .WithRemote(GrpcCoreRemoteConfig.BindToLocalhost())
                     .WithCluster(ClusterConfig
-                        .Setup(clusterName, new TestProvider(new TestProviderOptions(),new InMemAgent()), new PartitionIdentityLookup())
+                        .Setup(clusterName, new TestProvider(new TestProviderOptions(), new InMemAgent()),
+                            new PartitionIdentityLookup())
                         .WithClusterKind("VehicleActor", vehicleProps)
                         .WithClusterKind("OrganizationActor", organizationProps)
                         .WithClusterKind("GlobalViewportActor", globalViewportProps)
                     )
                     .Cluster()
                     .WithPidCacheInvalidation();
-            
+
                 return system;
             });
-            
-            services.AddSingleton(provider => provider.GetService<ActorSystem>()!.Cluster());
-            
-            services.AddHostedService<MqttIngress>();
+
+            services.AddSingleton(provider => provider.GetRequiredService<ActorSystem>().Cluster());
+
             services.AddHostedService<ActorSystemHostedService>();
+            services.AddHostedService<MqttIngress>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -77,7 +78,7 @@ namespace Backend
             {
                 app.UseDeveloperExceptionPage();
             }
-            
+
             app.UseCors(builder => builder
                 .WithOrigins("http://localhost:8080")
                 .AllowAnyMethod()

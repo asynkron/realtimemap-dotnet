@@ -1,4 +1,5 @@
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import config from "@/config";
 
 export interface PositionsDto {
   positions: PositionDto[];
@@ -23,7 +24,7 @@ export interface HubConnection {
 export const connectToHub = async (): Promise<HubConnection> => {
 
   const connection = new HubConnectionBuilder()
-    .withUrl('http://localhost:5000/events')
+    .withUrl(config.backendUrl + "/events")
     .configureLogging(LogLevel.Debug)
     .withAutomaticReconnect()
     .build();
