@@ -2,9 +2,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.name }}
-  {{- with .Values.ingress.annotations }}
+  name: {{ .Values.name }}-backend
   annotations:
+    nginx.ingress.kubernetes.io/affinity: cookie
+    nginx.ingress.kubernetes.io/affinity-mode: persistent
+    nginx.ingress.kubernetes.io/session-cookie-name: reatimemap-session
+    nginx.ingress.kubernetes.io/session-cookie-path: /backend
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "86400"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+  {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
@@ -19,25 +25,11 @@ spec:
     - host: {{ .Values.ingress.host }}
       http:
         paths:
-          - path: /events
+          - path: /backend(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
               service:
                 name: {{ .Values.name }}-backend
-                port:
-                  name: http 
-          - path: /api
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: {{ .Values.name }}-backend
-                port:
-                  name: http 
-          - path: /
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: {{ .Values.name }}-frontend
                 port:
                   name: http 
 {{- end }}

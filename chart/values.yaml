@@ -43,8 +43,8 @@ frontend:
     #   memory: 128Mi
 
   config:
-    backendUrl: ""
-    mapboxToken: "<your access token>"
+    backendUrl: /backend
+    mapboxToken: <your access token>
 
 
 backend:
