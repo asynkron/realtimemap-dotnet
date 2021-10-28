@@ -23,8 +23,8 @@ The goals of this app are:
 
 Configure Mapbox:
 1. Create an account on [Mapbox](https://www.mapbox.com/).
-1. Copy a token from: main dashbaord / access tokens / default public token.
-1. Paste the token in `Frontend\src\mapboxConfig.ts`.
+1. Copy a token from: main dashboard / access tokens / default public token.
+1. Paste the token in `Frontend\src\config.ts`.
 
 Start frontend:
 ```
@@ -75,7 +75,7 @@ In our app, `Ingress` is a [hosted service](https://docs.microsoft.com/en-us/asp
 
 ### Vehicles
 
-When creating a system with actors, is common to model real-world physical objects as actors. We'll start by modeling a vehicle since all the features depend on it. It will be implemented as a virtual actor (`VehicleActor`). It will be responsible for handling events related to that vehicle and remembering its state, e.g. its current position and position history.
+When creating a system with actors, is common to model real-world physical objects as actors. We'll start by modelling a vehicle since all the features depend on it. It will be implemented as a virtual actor (`VehicleActor`). It will be responsible for handling events related to that vehicle and remembering its state, e.g. its current position and position history.
 
 Quick info on virtual actors:
 1. Each virtual actor is of a specific kind, in this case, it's `Vehicle`.

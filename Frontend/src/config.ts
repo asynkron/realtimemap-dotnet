@@ -1,4 +1,4 @@
-﻿import mapboxConfig from '@/mapboxConfig';
+﻿const mapboxAccessToken = "<your access token>";
 
 export interface Configuration {
   backendUrl: string;
@@ -25,8 +25,15 @@ function getRuntimeConfig(): object {
   return {};
 }
 
-export default Object.freeze({
+const config = Object.freeze({
   backendUrl: process.env.VUE_APP_API_URL || "http://localhost:5000",
-  mapboxToken: mapboxConfig.getAccessToken(),
+  mapboxToken: mapboxAccessToken,
   ...getRuntimeConfig()
-}) as Configuration;
+});
+
+if (config.mapboxToken as string === "<your access token>") {
+  alert("Mapbox access token not set. Please set it in src/config.ts!")
+  throw new Error("Mapbox access token not set.");
+}
+
+export default config as Configuration;

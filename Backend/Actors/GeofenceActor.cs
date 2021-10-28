@@ -11,12 +11,14 @@ namespace Backend.Actors
     {
         private readonly string _organizationName;
         private readonly CircularGeofence _circularGeofence;
+        private readonly Cluster _cluster;
         private readonly HashSet<string> _vehiclesInZone;
 
-        public GeofenceActor(string organizationName, CircularGeofence circularGeofence)
+        public GeofenceActor(string organizationName, CircularGeofence circularGeofence, Cluster cluster)
         {
             _organizationName = organizationName;
             _circularGeofence = circularGeofence;
+            _cluster = cluster;
             _vehiclesInZone = new HashSet<string>();
         }
         
@@ -33,7 +35,7 @@ namespace Backend.Actors
                         if (!vehicleAlreadyInZone)
                         {
                             _vehiclesInZone.Add(position.VehicleId);
-                            context.System.EventStream.Publish(new Notification
+                            _cluster.MemberList.BroadcastEvent(new Notification
                             {
                                 Message = $"{position.VehicleId} from {_organizationName} entered the zone {_circularGeofence.Name}"
                             });
@@ -44,7 +46,7 @@ namespace Backend.Actors
                         if (vehicleAlreadyInZone)
                         {
                             _vehiclesInZone.Remove(position.VehicleId);
-                            context.System.EventStream.Publish(new Notification
+                            _cluster.MemberList.BroadcastEvent(new Notification
                             {
                                 Message = $"{position.VehicleId} from {_organizationName} left the zone {_circularGeofence.Name}"
                             });

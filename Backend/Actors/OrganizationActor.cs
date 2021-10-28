@@ -42,8 +42,9 @@ namespace Backend.Actors
         private void CreateGeofenceActor(CircularGeofence circularGeofence)
         {
             var geofenceProps = Props.FromProducer(() => new GeofenceActor(
-                organizationName: _organizationName,
-                circularGeofence: circularGeofence
+                _organizationName,
+                circularGeofence,
+                Cluster
             ));
 
             Context.Spawn(geofenceProps);
