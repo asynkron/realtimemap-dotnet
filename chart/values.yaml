@@ -9,9 +9,9 @@ frontend:
   replicaCount: 2
 
   image:
-    repository: frontend
+    repository: marcinbudny/protoactor-realtimemap-dotnet-frontend
     pullPolicy: IfNotPresent
-    tag: "1"
+    tag: "0.1.0"
   
   podAnnotations: {}
   
@@ -51,10 +51,9 @@ backend:
   replicaCount: 2
 
   image:
-    repository: backend
+    repository: marcinbudny/protoactor-realtimemap-dotnet-backend
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: "1"
+    tag: "0.1.0"
 
   podAnnotations: {}
 
