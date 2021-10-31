@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name  }}-backend
+  name: {{ .Release.Name  }}-backend
   labels:
-    app: {{ .Values.name }}-backend
+    app: {{ .Release.Name }}-backend
 spec:
   replicas: {{ .Values.backend.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Values.name }}-backend
+      app: {{ .Release.Name }}-backend
   template:
     metadata:
       {{- with .Values.backend.podAnnotations }}
@@ -16,13 +16,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        app: {{ .Values.name }}-backend
+        app: {{ .Release.Name }}-backend
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ .Values.name }}-backend
+      serviceAccountName: {{ .Release.Name }}-backend
       securityContext:
         {{- toYaml .Values.backend.podSecurityContext | nindent 8 }}
       containers:
@@ -42,7 +42,7 @@ spec:
                   fieldPath: status.podIP
           envFrom:
             - configMapRef:
-                name: {{ .Values.name }}-backend
+                name: {{ .Release.Name }}-backend
           ports:
             - name: http
               containerPort: 5000

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.name }}-frontend
+  name: {{ .Release.Name }}-frontend
 data:
   VUE_APP_BACKEND_URL: "{{ .Values.frontend.config.backendUrl }}"
   VUE_APP_MAPBOX_TOKEN: "{{ .Values.frontend.config.mapboxToken }}"

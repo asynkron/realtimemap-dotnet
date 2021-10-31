@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.name }}-backend
+  name: {{ .Release.Name }}-backend
   annotations:
     nginx.ingress.kubernetes.io/affinity: cookie
     nginx.ingress.kubernetes.io/affinity-mode: persistent
@@ -29,7 +29,7 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: {{ .Values.name }}-backend
+                name: {{ .Release.Name }}-backend
                 port:
                   name: http 
 {{- end }}

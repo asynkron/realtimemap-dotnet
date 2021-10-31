@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name  }}-frontend
+  name: {{ .Release.Name  }}-frontend
   labels:
-    app: {{ .Values.name }}-frontend
+    app: {{ .Release.Name }}-frontend
 spec:
   replicas: {{ .Values.frontend.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Values.name }}-frontend
+      app: {{ .Release.Name }}-frontend
   template:
     metadata:
       {{- with .Values.frontend.podAnnotations }}
@@ -16,7 +16,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        app: {{ .Values.name }}-frontend
+        app: {{ .Release.Name }}-frontend
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -32,7 +32,7 @@ spec:
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
           envFrom:
             - configMapRef:
-                name: {{ .Values.name }}-frontend
+                name: {{ .Release.Name }}-frontend
           ports:
             - name: http
               containerPort: 80

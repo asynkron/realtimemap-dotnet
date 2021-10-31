@@ -1,6 +1,3 @@
-
-name: realtimemap
-
 imagePullSecrets: []
 
 secretName: realtimemap-secret
@@ -16,15 +13,16 @@ frontend:
   podAnnotations: {}
   
   podSecurityContext: {}
+    # runAsUser: 101
     # fsGroup: 2000
   
-  securityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
     # capabilities:
     #   drop:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-    # runAsUser: 1000
   
   service:
     type: ClusterIP
@@ -53,20 +51,20 @@ backend:
   image:
     repository: marcinbudny/protoactor-realtimemap-dotnet-backend
     pullPolicy: IfNotPresent
-    tag: "0.1.0"
+    tag: "0.2.0"
 
   podAnnotations: {}
 
-  podSecurityContext: {}
-  # fsGroup: 2000
+  podSecurityContext:
+    runAsUser: 101
 
-  securityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
     # capabilities:
     #   drop:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-  # runAsUser: 1000
 
   service:
     type: ClusterIP
