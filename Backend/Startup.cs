@@ -68,10 +68,6 @@ namespace Backend
                     .FromProducer(() => new OrganizationActorActor((c, _) =>
                         ActivatorUtilities.CreateInstance<OrganizationActor>(provider, c)));
 
-                var globalViewportProps = Props
-                    .FromProducer(() => new GlobalViewportActorActor((c, _) =>
-                        ActivatorUtilities.CreateInstance<GlobalViewportActor>(provider, c)));
-
                 IClusterProvider clusterProvider;
                 GrpcCoreRemoteConfig remoteConfig;
 
@@ -102,7 +98,6 @@ namespace Backend
                         .Setup(clusterName, clusterProvider, new PartitionIdentityLookup())
                         .WithClusterKind("VehicleActor", vehicleProps)
                         .WithClusterKind("OrganizationActor", organizationProps)
-                        .WithClusterKind("GlobalViewportActor", globalViewportProps)
                     )
                     .Cluster()
                     .WithPidCacheInvalidation();

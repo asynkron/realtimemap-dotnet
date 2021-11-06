@@ -1,9 +1,6 @@
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Proto;
-using Proto.Cluster;
 
 namespace Backend.Actors
 {
@@ -46,7 +43,7 @@ namespace Backend.Actors
                     break;
 
                 case UpdateViewport updateViewport:
-                    await OnUpdateViewport(context, updateViewport);
+                    _viewport.MergeFrom(updateViewport.Viewport);
                     break;
 
                 case Stopping:
@@ -89,18 +86,6 @@ namespace Backend.Actors
                     _positions.Clear();
                 }
             }
-        }
-
-        private async Task OnUpdateViewport(IContext context, UpdateViewport updateViewport)
-        {
-            _viewport.MergeFrom(updateViewport.Viewport);
-
-            var positionsInViewport = await context
-                .Cluster()
-                .GetGlobalViewportActor()
-                .GetPositionsInViewport(_viewport, CancellationToken.None);
-
-            await _sendPositionBatch(positionsInViewport);
         }
     }
 
