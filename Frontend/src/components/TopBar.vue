@@ -16,8 +16,12 @@
     <div class="flex-1">
     </div>
 
+    <a href="https://www.skyrise.tech" target="_blank" rel="noopener noreferrer" class="h-full px-3 block flex align-items-center">
+      <img src="../assets/skyrise.svg" class="logo" />
+    </a>
+
     <a href="https://proto.actor" target="_blank" rel="noopener noreferrer" class="h-full px-3 block flex align-items-center">
-      <img src="../assets/protoactor.svg" class="protoactor-logo" />
+      <img src="../assets/protoactor.svg" class="logo" />
     </a>
 
     <a href="https://github.com/AsynkronIT/realtimemap" target="_blank" rel="noopener noreferrer" class="h-full px-3 block">
@@ -37,11 +41,11 @@ export default defineComponent({
 
 <style scoped>
 
-  .protoactor-logo {
+  .logo {
     height: 2rem;
   }
 
-  .protoactor-logo:hover {
+  .logo:hover {
     opacity: .75;
   }
 
