@@ -23,8 +23,8 @@ The goals of this app are:
 
 Configure Mapbox:
 1. Create an account on [Mapbox](https://www.mapbox.com/).
-1. Copy a token from: main dashbaord / access tokens / default public token.
-1. Paste the token in `Frontend\src\mapboxConfig.ts`.
+1. Copy a token from: main dashboard / access tokens / default public token.
+1. Paste the token in `Frontend\src\config.ts`.
 
 Start frontend:
 ```
@@ -41,6 +41,9 @@ dotnet run
 
 The app is available on [localhost:8080](http://localhost:8080/).
 
+### Kubernetes
+
+In order to deploy to Kubernetes and use the Kubernetes cluster provider, see [Deploying to Kubernetes](deploying-to-kubernetes)
 
 ## How does it work?
 
@@ -75,7 +78,7 @@ In our app, `Ingress` is a [hosted service](https://docs.microsoft.com/en-us/asp
 
 ### Vehicles
 
-When creating a system with actors, is common to model real-world physical objects as actors. We'll start by modeling a vehicle since all the features depend on it. It will be implemented as a virtual actor (`VehicleActor`). It will be responsible for handling events related to that vehicle and remembering its state, e.g. its current position and position history.
+When creating a system with actors, is common to model real-world physical objects as actors. We'll start by modelling a vehicle since all the features depend on it. It will be implemented as a virtual actor (`VehicleActor`). It will be responsible for handling events related to that vehicle and remembering its state, e.g. its current position and position history.
 
 Quick info on virtual actors:
 1. Each virtual actor is of a specific kind, in this case, it's `Vehicle`.
@@ -160,3 +163,41 @@ The workflow looks like that:
 1. `OrganizationController` maps and returns the results to the user.
 
 ![getting vehicles in the org drawio](docs/getting%20vehicles%20in%20geofence.drawio.png)
+
+## Deploying to Kubernetes
+
+Prerequisites:
+* [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl) with configured connection to your cluster, e.g. Docker desktop
+* [Helm](https://helm.sh/docs/intro/install/)
+* [nginx ingress controller](https://kubernetes.github.io/ingress-nginx/deploy/) configured on your cluster
+
+The Realtime Map sample can be configured to use Kubernetes as cluster provider. The attached [chart](chart) contains definition for the deployment. You will need to supply some additional configuration, so create a new values file, e.g. `my-values.yaml` in the root directory of the sample. Example contents:
+
+```yaml
+frontend:
+  config:
+    mapboxToken: SOME_TOKEN # provide your MapBox token here
+
+backend:
+  config:
+    # since all backend pods need to share MQTT subscription, 
+    # generate a new guid and provide it here (no dashes)
+    sharedSubscriptionGroupName: SOME_GUID 
+
+ingress:
+  # specify localhost if on Docker Desktop, 
+  # otherwise add a domain for the sample to your DNS and specify it here
+  host: localhost 
+```
+
+Create the namespace and deploy the sample:
+
+```bash
+kubectl create namespace realtimemap
+
+helm upgrade --install -f my-values.yml --namespace realtimemap realtimemap ./chart
+```
+
+*NOTE:* the chart creates a new role in the cluster with permissions to access Kubernetes API required for the cluster provider.
+
+The above config will deploy the sample without TLS on the ingress, additional configuration is required to secure the connection.

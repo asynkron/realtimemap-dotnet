@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -32,21 +33,21 @@ namespace Backend.MQTT
             var sharedSubscriptionGroupName = _configuration["RealtimeMap:SharedSubscriptionGroupName"];
 
             return string.IsNullOrEmpty(sharedSubscriptionGroupName)
-                ? "group-{Guid.NewGuid()}"
+                ? $"group-{Guid.NewGuid()}"
                 : sharedSubscriptionGroupName;
         }
 
         private async Task ProcessHrtPositionUpdate(HrtPositionUpdate hrtPositionUpdate)
         {
             var vehicleId = $"{hrtPositionUpdate.OperatorId}.{hrtPositionUpdate.VehicleNumber}";
-            
+
             var position = new Position
             {
                 OrgId = hrtPositionUpdate.OperatorId,
                 Longitude = hrtPositionUpdate.VehiclePosition.Long.GetValueOrDefault(),
                 Latitude = hrtPositionUpdate.VehiclePosition.Lat.GetValueOrDefault(),
                 VehicleId = vehicleId,
-                Heading = (int) hrtPositionUpdate.VehiclePosition.Hdg.GetValueOrDefault(),
+                Heading = (int)hrtPositionUpdate.VehiclePosition.Hdg.GetValueOrDefault(),
                 DoorsOpen = hrtPositionUpdate.VehiclePosition.Drst == 1,
                 Timestamp = hrtPositionUpdate.VehiclePosition.Tst.GetValueOrDefault().Ticks,
                 Speed = hrtPositionUpdate.VehiclePosition.Spd.GetValueOrDefault()
@@ -59,8 +60,8 @@ namespace Backend.MQTT
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _hrtPositionsSubscription.Dispose();
-            
+            _hrtPositionsSubscription?.Dispose();
+
             return Task.CompletedTask;
         }
     }

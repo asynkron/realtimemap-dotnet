@@ -1,0 +1,99 @@
+imagePullSecrets: []
+
+secretName: realtimemap-secret
+
+frontend:
+  replicaCount: 2
+
+  image:
+    repository: marcinbudny/protoactor-realtimemap-dotnet-frontend
+    pullPolicy: IfNotPresent
+    tag: "0.2.0"
+  
+  podAnnotations: {}
+  
+  podSecurityContext: {}
+    # runAsUser: 101
+    # fsGroup: 2000
+  
+  securityContext:
+    allowPrivilegeEscalation: false
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+  
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources: { }
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  config:
+    backendUrl: /backend
+    mapboxToken: <your access token>
+
+
+backend:
+  replicaCount: 2
+
+  image:
+    repository: marcinbudny/protoactor-realtimemap-dotnet-backend
+    pullPolicy: IfNotPresent
+    tag: "0.3.0"
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    runAsUser: 101
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+
+  service:
+    type: ClusterIP
+    port: 5000
+    
+  resources: { }
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  config:
+    developerLogging: "false"
+    sharedSubscriptionGroupName: "<your subscription name>"
+
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  host: chart-example.local
+
+  # tls:
+  #   secretName: chart-example-tls

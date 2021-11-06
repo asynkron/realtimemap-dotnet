@@ -19,6 +19,7 @@ namespace Backend.MQTT
             var mqttClientOptions = new MqttClientOptionsBuilder()
                 .WithClientId(null) // do not keep state on the broker
                 .WithCleanSession()
+                .WithNoKeepAlive()
                 .WithTls(new MqttClientOptionsBuilderTlsParameters
                 {
                     UseTls = true,

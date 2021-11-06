@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-backend
+data:
+  RealtimeMap__SharedSubscriptionGroupName: {{ .Values.backend.config.sharedSubscriptionGroupName }}
+  ProtoActor__DeveloperLogging: "{{ .Values.backend.config.developerLogging }}"

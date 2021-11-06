@@ -10,10 +10,11 @@
         <PackageReference Include="JetBrains.Annotations" Version="2021.2.0-eap2" />
         <PackageReference Include="MQTTnet" Version="3.0.16" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-        <PackageReference Include="Proto.Cluster" Version="0.24.1-alpha.0.23" />
-        <PackageReference Include="Proto.Cluster.CodeGen" Version="0.24.1-alpha.0.23" />
-        <PackageReference Include="Proto.Cluster.TestProvider" Version="0.24.1-alpha.0.23" />
-        <PackageReference Include="Proto.Remote.GrpcCore" Version="0.24.1-alpha.0.23" />
+        <PackageReference Include="Proto.Cluster" Version="0.24.1-alpha.0.42" />
+        <PackageReference Include="Proto.Cluster.CodeGen" Version="0.24.1-alpha.0.42" />
+        <PackageReference Include="Proto.Cluster.Kubernetes" Version="0.24.1-alpha.0.42" />
+        <PackageReference Include="Proto.Cluster.TestProvider" Version="0.24.1-alpha.0.42" />
+        <PackageReference Include="Proto.Remote.GrpcCore" Version="0.24.1-alpha.0.42" />
     </ItemGroup>
 
     <ItemGroup>

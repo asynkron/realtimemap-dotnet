@@ -6,19 +6,31 @@ namespace Backend.Actors
     {
         private const int Capacity = 100;
         
-        // linked list is used for fast first item removing
+        // linked list is used for fast first item removing and inserting in chronological order
         private readonly LinkedList<Position> _positions = new();
         
         public IEnumerable<Position> Positions => _positions;
         
         public void Add(Position position)
         {
-            _positions.AddLast(position);
+            var node = _positions.Last;
 
-            if (_positions.Count > Capacity)
+            // add and keep chronological order
+            if (node == null || node.Value.Timestamp <= position.Timestamp)
             {
-                _positions.RemoveFirst();
+                _positions.AddLast(position);
             }
+            else
+            {
+                while (node != null && node.Value.Timestamp > position.Timestamp) node = node.Previous;
+                if (node == null)
+                    _positions.AddFirst(position);
+                else
+                    _positions.AddBefore(node, position);
+            }
+            
+            if (_positions.Count > Capacity)
+                _positions.RemoveFirst();
         }
     }
 }

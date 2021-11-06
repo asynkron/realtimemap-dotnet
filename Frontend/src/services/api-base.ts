@@ -1,7 +1,8 @@
 import axios, { AxiosInstance } from "axios";
+import config from "@/config";
 
 const apiInstance: Readonly<AxiosInstance> = axios.create({
-    baseURL: process.env.VUE_APP_API_URL || "http://localhost:5000/api",
+    baseURL: config.backendUrl + "/api",
     timeout: 5000
   });
 
