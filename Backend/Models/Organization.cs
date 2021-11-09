@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Backend.Models
+﻿namespace Backend.Models
 {
     public class Organization
     {

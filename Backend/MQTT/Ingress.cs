@@ -1,68 +1,62 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Proto;
 using Proto.Cluster;
 
-namespace Backend.MQTT
+namespace Backend.MQTT;
+
+public class MqttIngress : IHostedService
 {
-    public class MqttIngress : IHostedService
+    private readonly IConfiguration _configuration;
+    private readonly Cluster _cluster;
+
+    private HrtPositionsSubscription _hrtPositionsSubscription;
+
+    public MqttIngress(IConfiguration configuration, Cluster cluster)
     {
-        private readonly IConfiguration _configuration;
-        private readonly Cluster _cluster;
+        _configuration = configuration;
+        _cluster = cluster;
+    }
 
-        private HrtPositionsSubscription _hrtPositionsSubscription;
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        _hrtPositionsSubscription = await HrtPositionsSubscription.Start(
+            sharedSubscriptionGroupName: GetSharedSubscriptionGroupName(),
+            onPositionUpdate: ProcessHrtPositionUpdate);
+    }
 
-        public MqttIngress(IConfiguration configuration, Cluster cluster)
+    private string GetSharedSubscriptionGroupName()
+    {
+        var sharedSubscriptionGroupName = _configuration["RealtimeMap:SharedSubscriptionGroupName"];
+
+        return string.IsNullOrEmpty(sharedSubscriptionGroupName)
+            ? $"group-{Guid.NewGuid()}"
+            : sharedSubscriptionGroupName;
+    }
+
+    private async Task ProcessHrtPositionUpdate(HrtPositionUpdate hrtPositionUpdate)
+    {
+        var vehicleId = $"{hrtPositionUpdate.OperatorId}.{hrtPositionUpdate.VehicleNumber}";
+
+        var position = new Position
         {
-            _configuration = configuration;
-            _cluster = cluster;
-        }
+            OrgId = hrtPositionUpdate.OperatorId,
+            Longitude = hrtPositionUpdate.VehiclePosition.Long.GetValueOrDefault(),
+            Latitude = hrtPositionUpdate.VehiclePosition.Lat.GetValueOrDefault(),
+            VehicleId = vehicleId,
+            Heading = (int)hrtPositionUpdate.VehiclePosition.Hdg.GetValueOrDefault(),
+            DoorsOpen = hrtPositionUpdate.VehiclePosition.Drst == 1,
+            Timestamp = hrtPositionUpdate.VehiclePosition.Tst.GetValueOrDefault().Ticks,
+            Speed = hrtPositionUpdate.VehiclePosition.Spd.GetValueOrDefault()
+        };
 
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-            _hrtPositionsSubscription = await HrtPositionsSubscription.Start(
-                sharedSubscriptionGroupName: GetSharedSubscriptionGroupName(),
-                onPositionUpdate: ProcessHrtPositionUpdate);
-        }
+        await _cluster
+            .GetVehicleActor(vehicleId)
+            .OnPosition(position, CancellationTokens.FromSeconds(1));
+    }
 
-        private string GetSharedSubscriptionGroupName()
-        {
-            var sharedSubscriptionGroupName = _configuration["RealtimeMap:SharedSubscriptionGroupName"];
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _hrtPositionsSubscription?.Dispose();
 
-            return string.IsNullOrEmpty(sharedSubscriptionGroupName)
-                ? $"group-{Guid.NewGuid()}"
-                : sharedSubscriptionGroupName;
-        }
-
-        private async Task ProcessHrtPositionUpdate(HrtPositionUpdate hrtPositionUpdate)
-        {
-            var vehicleId = $"{hrtPositionUpdate.OperatorId}.{hrtPositionUpdate.VehicleNumber}";
-
-            var position = new Position
-            {
-                OrgId = hrtPositionUpdate.OperatorId,
-                Longitude = hrtPositionUpdate.VehiclePosition.Long.GetValueOrDefault(),
-                Latitude = hrtPositionUpdate.VehiclePosition.Lat.GetValueOrDefault(),
-                VehicleId = vehicleId,
-                Heading = (int)hrtPositionUpdate.VehiclePosition.Hdg.GetValueOrDefault(),
-                DoorsOpen = hrtPositionUpdate.VehiclePosition.Drst == 1,
-                Timestamp = hrtPositionUpdate.VehiclePosition.Tst.GetValueOrDefault().Ticks,
-                Speed = hrtPositionUpdate.VehiclePosition.Spd.GetValueOrDefault()
-            };
-
-            await _cluster
-                .GetVehicleActor(vehicleId)
-                .OnPosition(position, CancellationTokens.FromSeconds(1));
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _hrtPositionsSubscription?.Dispose();
-
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

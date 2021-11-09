@@ -1,5 +1,5 @@
 # Stage 1 - Build
-FROM mcr.microsoft.com/dotnet/sdk:5.0.402 AS builder
+FROM mcr.microsoft.com/dotnet/sdk:6.0.100 AS builder
 
 WORKDIR /app/src
 
@@ -12,7 +12,7 @@ COPY . .
 RUN dotnet publish -c Release -o /app/publish -r linux-x64 --no-self-contained --no-restore -p:PublishReadyToRun=true -p:CrossGenDuringPublish=false
 
 # Stage 2 - Publish
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.11
+FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
 
 RUN addgroup --system --gid 101 app \

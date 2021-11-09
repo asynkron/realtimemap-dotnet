@@ -1,4 +1,4 @@
-﻿const mapboxAccessToken = "<your access token>";
+﻿const mapboxAccessToken = "pk.eyJ1IjoicnQtc2t5cmlzZSIsImEiOiJja3RjcmEwNGUwZnFsMndtYXkxZmN5bmMxIn0.7ovLecO9BatfsuovCXpFKw";
 
 export interface Configuration {
   backendUrl: string;
@@ -9,7 +9,7 @@ function getRuntimeConfig(): object {
   // eslint-disable-next-line
   const runtimeConfig = (window as any).realtimeMapConfig;
 
-  if(typeof runtimeConfig === "object") {
+  if (typeof runtimeConfig === "object") {
 
     // remove not substituted config properties
     for (const key in runtimeConfig) {
