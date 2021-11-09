@@ -1,12 +1,27 @@
-// Additional configuration is required to successfully run gRPC on macOS.
-// For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
+using Backend.Api;
+using Backend.Hubs;
+using Backend.MQTT;
 
-var host = Host
-    .CreateDefaultBuilder(args)
-    .ConfigureWebHostDefaults(webBuilder =>
-    {
-        webBuilder.UseStartup<Startup>();
-    })
-    .Build();
+var builder = WebApplication.CreateBuilder(args);
 
-host.Run();
+builder.Services.AddControllers();
+builder.Services.AddSignalR();
+builder.Services.AddRealtimeMapProtoActor();
+builder.Services.AddHostedService<MqttIngress>();
+
+var app = builder.Build();
+
+app.UseCors(b => b
+    .WithOrigins("http://localhost:8080")
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .AllowCredentials()
+);
+
+app.UseRouting();
+
+app.MapHub<EventsHub>("/events");
+app.MapOrganizationApi();
+app.MapTrailApi();
+
+app.Run();
