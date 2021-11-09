@@ -9,7 +9,7 @@ RUN dotnet restore -r linux-x64
 
 # Build
 COPY . .
-RUN dotnet publish -c Release -o /app/publish -r linux-x64 --no-self-contained --no-restore -p:PublishReadyToRun=true -p:CrossGenDuringPublish=false
+RUN dotnet publish -c Release -o /app/publish -r linux-x64 --no-self-contained --no-restore
 
 # Stage 2 - Publish
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
