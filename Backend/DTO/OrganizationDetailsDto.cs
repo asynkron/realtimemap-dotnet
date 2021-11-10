@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
+﻿namespace Backend.DTO;
 
-namespace Backend.DTO
+public class OrganizationDetailsDto : OrganizationDto
 {
-    public class OrganizationDetailsDto : OrganizationDto
-    {
-        public IReadOnlyList<GeofenceDto> Geofences { get; set; }
-    }
+    public IReadOnlyList<GeofenceDto> Geofences { get; set; }
 }

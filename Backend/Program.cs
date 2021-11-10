@@ -1,21 +1,27 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Backend;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
+using Backend.Api;
+using Backend.Hubs;
+using Backend.MQTT;
 
-// Additional configuration is required to successfully run gRPC on macOS.
-// For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
+var builder = WebApplication.CreateBuilder(args);
 
-var host = Host
-    .CreateDefaultBuilder(args)
-    .ConfigureWebHostDefaults(webBuilder =>
-    {
-        webBuilder.UseStartup<Startup>();
-    })
-    .Build();
+builder.Services.AddControllers();
+builder.Services.AddSignalR();
+builder.Services.AddRealtimeMapProtoActor();
+builder.Services.AddHostedService<MqttIngress>();
 
-host.Run();
+var app = builder.Build();
+
+app.UseCors(b => b
+    .WithOrigins("http://localhost:8080")
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .AllowCredentials()
+);
+
+app.UseRouting();
+
+app.MapHub<EventsHub>("/events");
+app.MapOrganizationApi();
+app.MapTrailApi();
+
+app.Run();
