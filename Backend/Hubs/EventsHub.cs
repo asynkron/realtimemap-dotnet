@@ -16,7 +16,7 @@ public class EventsHub : Hub
     public EventsHub(Cluster cluster, IHubContext<EventsHub> eventsHubContext)
     {
         _cluster = cluster;
-            
+
         // since the Hub is scoped per request, we need the IHubContext to be able to
         // push messages from the User actor
         _eventsHubContext = eventsHubContext;
@@ -69,7 +69,8 @@ public class EventsHub : Hub
             });
 
     private async Task SendNotification(string connectionId, Notification notification)
-        => await _eventsHubContext.Clients.Client(connectionId).SendAsync("notification", notification.Message);
+        => await _eventsHubContext.Clients.Client(connectionId)
+            .SendAsync("notification", NotificationDto.MapFrom(notification));
 
     public override async Task OnDisconnectedAsync(Exception exception)
     {

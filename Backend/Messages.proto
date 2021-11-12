@@ -23,8 +23,17 @@ message Viewport {
   GeoPoint north_east = 2;
 }
 
+enum GeofenceEvent {
+  enter = 0;
+  exit = 1;
+}
+
 message Notification {
-    string message = 1;
+    string vehicle_id = 1;
+    string org_id = 2;
+    string org_name = 3;
+    string zone_name = 4;
+    GeofenceEvent event = 5;
 }
 
 message PositionBatch {
@@ -33,7 +42,7 @@ message PositionBatch {
 
 message GeofenceDetails {
     string name = 1;
-    double radiusInMeters = 2;
+    double radius_in_meters = 2;
     double longitude = 3;
     double latitude = 4;
     string org_id = 5;

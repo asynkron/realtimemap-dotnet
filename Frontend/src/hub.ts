@@ -14,10 +14,18 @@ export interface PositionDto {
   doorsOpen: boolean;
 }
 
+export interface NotificationDto {
+  vehicleId: string;
+  orgId: string;
+  orgName: string;
+  zoneName: string;
+  event: "Enter" | "Exit";
+}
+
 export interface HubConnection {
   setViewport(swLng: number, swLat: number, neLng: number, neLat: number);
   onPositions(callback: (positions: PositionsDto) => void);
-  onNotification(callback: (notification: string) => void);
+  onNotification(callback: (notification: NotificationDto) => void);
   disconnect(): Promise<void>;
 }
 
@@ -53,8 +61,8 @@ export const connectToHub = async (): Promise<HubConnection> => {
       });
     },
 
-    onNotification(callback: (notification: string) => void) {
-      connection.on("notification", (notification: string) => {
+    onNotification(callback: (notification: NotificationDto) => void) {
+      connection.on("notification", (notification: NotificationDto) => {
         callback(notification);
       });
     },

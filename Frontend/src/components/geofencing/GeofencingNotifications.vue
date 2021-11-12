@@ -19,16 +19,16 @@ export default defineComponent({
   mounted() {
     if (this.hubConnection !== undefined) {
       this.hubConnection.onNotification(notification => {
-        if (notification.includes("entered")) {
+        if (notification.event === "Enter") {
           this.$toast.add({
               severity:'success',
-              detail: notification,
+              detail: `${notification.vehicleId} from ${notification.orgName} entered the zone ${notification.zoneName}`,
               life: 3000
             });
           } else {
             this.$toast.add({
               severity:'info',
-              detail: notification,
+              detail: `${notification.vehicleId} from ${notification.orgName} exited the zone ${notification.zoneName}`,
               life: 3000
             });
           }
