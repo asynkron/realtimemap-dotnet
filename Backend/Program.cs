@@ -6,10 +6,7 @@ using Log = Serilog.Log;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((context, cfg) 
-    => cfg
-        .Enrich.FromLogContext()
-        .ReadFrom.Configuration(context.Configuration));
+ConfigureLogging(builder);
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
@@ -43,3 +40,11 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+static void ConfigureLogging(WebApplicationBuilder builder)
+    => builder.Host.UseSerilog((context, cfg)
+        => cfg
+            .Enrich.FromLogContext()
+            .Enrich.WithProperty("Service", builder.Configuration["Service:Name"])
+            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+            .ReadFrom.Configuration(context.Configuration));

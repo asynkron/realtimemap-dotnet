@@ -1,4 +1,4 @@
-﻿const mapboxAccessToken = "<your access token>";
+﻿const mapboxAccessToken = "pk.eyJ1IjoicnQtc2t5cmlzZSIsImEiOiJja3RjcmEwNGUwZnFsMndtYXkxZmN5bmMxIn0.7ovLecO9BatfsuovCXpFKw";
 
 export interface Configuration {
   backendUrl: string;
