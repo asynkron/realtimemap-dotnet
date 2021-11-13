@@ -1,21 +1,19 @@
 ﻿using Backend.Actors;
 using Backend.DTO;
-using JetBrains.Annotations;
 using Microsoft.AspNetCore.SignalR;
-using Proto;
-using Proto.Cluster;
 
 namespace Backend.Hubs;
 
-[PublicAPI]
 public class EventsHub : Hub
 {
     private readonly Cluster _cluster;
     private readonly IHubContext<EventsHub> _eventsHubContext;
+    private readonly ILogger<EventsHub> _logger;
 
-    public EventsHub(Cluster cluster, IHubContext<EventsHub> eventsHubContext)
+    public EventsHub(Cluster cluster, IHubContext<EventsHub> eventsHubContext, ILogger<EventsHub> logger)
     {
         _cluster = cluster;
+        _logger = logger;
 
         // since the Hub is scoped per request, we need the IHubContext to be able to
         // push messages from the User actor
@@ -30,7 +28,7 @@ public class EventsHub : Hub
 
     public override Task OnConnectedAsync()
     {
-        Console.WriteLine($"Client {Context.ConnectionId} connected");
+        _logger.LogInformation("Client {ClientId} connected", Context.ConnectionId);
 
         var connectionId = Context.ConnectionId;
         UserActorPid = _cluster.System.Root.Spawn(
@@ -45,7 +43,8 @@ public class EventsHub : Hub
 
     public Task SetViewport(double swLng, double swLat, double neLng, double neLat)
     {
-        Console.WriteLine($"Client {Context.ConnectionId} setting viewport to ({swLat}, {swLng}),({neLat}, {neLng})");
+        _logger.LogInformation("Client {ClientId} setting viewport to ({SWLat}, {SWLng}),({NELat}, {NELng})",
+            Context.ConnectionId, swLat, swLng, neLat, neLng);
 
         _cluster.System.Root.Send(UserActorPid, new UpdateViewport
         {
@@ -74,7 +73,7 @@ public class EventsHub : Hub
 
     public override async Task OnDisconnectedAsync(Exception exception)
     {
-        Console.WriteLine($"Client {Context.ConnectionId} disconnected");
+        _logger.LogDebug("Client {ClientId} disconnected", Context.ConnectionId);
 
         await _cluster.System.Root.StopAsync(UserActorPid);
     }

@@ -1,26 +1,27 @@
-using Proto;
-using Proto.Cluster;
-
 namespace Backend.MQTT;
 
 public class MqttIngress : IHostedService
 {
     private readonly IConfiguration _configuration;
     private readonly Cluster _cluster;
+    private readonly ILoggerFactory _loggerFactory;
 
     private HrtPositionsSubscription _hrtPositionsSubscription;
 
-    public MqttIngress(IConfiguration configuration, Cluster cluster)
+    public MqttIngress(IConfiguration configuration, Cluster cluster, ILoggerFactory loggerFactory)
     {
         _configuration = configuration;
         _cluster = cluster;
+        _loggerFactory = loggerFactory;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _hrtPositionsSubscription = await HrtPositionsSubscription.Start(
-            sharedSubscriptionGroupName: GetSharedSubscriptionGroupName(),
-            onPositionUpdate: ProcessHrtPositionUpdate);
+            GetSharedSubscriptionGroupName(),
+            ProcessHrtPositionUpdate,
+            _loggerFactory,
+            cancellationToken);
     }
 
     private string GetSharedSubscriptionGroupName()
@@ -56,7 +57,6 @@ public class MqttIngress : IHostedService
     public Task StopAsync(CancellationToken cancellationToken)
     {
         _hrtPositionsSubscription?.Dispose();
-
         return Task.CompletedTask;
     }
 }

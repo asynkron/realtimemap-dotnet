@@ -2,7 +2,7 @@
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
-using MQTTnet.Diagnostics;
+using MQTTnet.Protocol;
 
 namespace Backend.MQTT;
 
@@ -10,8 +10,12 @@ public class HrtPositionsSubscription : IDisposable
 {
     public static async Task<HrtPositionsSubscription> Start(
         string sharedSubscriptionGroupName,
-        Func<HrtPositionUpdate, Task> onPositionUpdate)
+        Func<HrtPositionUpdate, Task> onPositionUpdate,
+        ILoggerFactory loggerFactory,
+        CancellationToken cancel)
     {
+        var logger = loggerFactory.CreateLogger<HrtPositionsSubscription>();
+
         var mqttClient = CreateMqttClient();
 
         var mqttClientOptions = new MqttClientOptionsBuilder()
@@ -28,84 +32,67 @@ public class HrtPositionsSubscription : IDisposable
 
         mqttClient.UseConnectedHandler(async args =>
         {
-            Console.WriteLine("### CONNECTED WITH MQTT SERVER ###");
+            logger.LogInformation("Connected to MQTT Server");
 
             // we subscribe to a group subscription, so messages are distributed between cluster nodes
-            await mqttClient.SubscribeAsync($"$share/{sharedSubscriptionGroupName}//hfp/v2/journey/ongoing/vp/bus/#");
+            await mqttClient.SubscribeAsync(
+                $"$share/{sharedSubscriptionGroupName}//hfp/v2/journey/ongoing/vp/bus/#",
+                MqttQualityOfServiceLevel.AtMostOnce);
 
-            Console.WriteLine("### SUBSCRIBED ###");
+            logger.LogInformation("Subscribed to MQTT topic");
         });
-            
+
         mqttClient.UseDisconnectedHandler(async args =>
         {
-            Console.WriteLine("### DISCONNECTED FROM MQTT SERVER ###");
-                
-            if (args.Exception is not null) Console.WriteLine(args.Exception);
+            if (args.Exception != null)
+                logger.LogWarning(args.Exception, "Disconnected from MQTT server");
+            else
+                logger.LogWarning("Disconnected from MQTT server");
 
             try
             {
-                await mqttClient.ConnectAsync(mqttClientOptions);
+                logger.LogInformation("Attempting reconnect to MQTT server");
+                await mqttClient.ConnectAsync(mqttClientOptions, cancel);
             }
-            catch
+            catch (Exception e)
             {
-                Console.WriteLine("### RECONNECTING FAILED ###");
+                logger.LogWarning(e, "Unable to reconnect to to MQTT server");
             }
         });
-            
-        mqttClient.UseApplicationMessageReceivedHandler(async e =>
+
+        mqttClient.UseApplicationMessageReceivedHandler(async args =>
         {
             try
             {
-                var hrtPositionUpdate = HrtPositionUpdate.ParseFromMqttMessage(e.ApplicationMessage);
+                logger.LogDebug("Received message {@Message}", args.ApplicationMessage);
+
+                var hrtPositionUpdate = HrtPositionUpdate.ParseFromMqttMessage(args.ApplicationMessage);
 
                 if (hrtPositionUpdate.HasValidPosition)
-                {
                     await onPositionUpdate(hrtPositionUpdate);
-                }
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                Console.WriteLine(exception);
-                throw;
+                logger.LogError(e, "Error while processing message {@Message}", args.ApplicationMessage);
             }
         });
 
-        await mqttClient.ConnectAsync(mqttClientOptions);
+        logger.LogInformation("Connecting to MQTT server");
+        await mqttClient.ConnectAsync(mqttClientOptions, cancel);
 
         return new HrtPositionsSubscription(mqttClient);
     }
-        
+
     private static IMqttClient CreateMqttClient()
     {
-        var logger = CreateMqttNetLogger();
-        var factory = new MqttFactory(logger);
+        var factory = new MqttFactory(new SerilogMqttNetLogger());
 
         return factory.CreateMqttClient();
     }
 
-    private static MqttNetLogger CreateMqttNetLogger()
-    {
-        var logger = new MqttNetLogger();
-
-        logger.LogMessagePublished += (sender, e) =>
-        {
-            if (e.LogMessage.Level >= MqttNetLogLevel.Warning) Console.WriteLine(e.LogMessage.Message);
-
-            if (e.LogMessage.Level == MqttNetLogLevel.Error) Console.WriteLine(e.LogMessage.Exception);
-        };
-            
-        return logger;
-    }
-
     private readonly IMqttClient _mqttClient;
 
-    private HrtPositionsSubscription(IMqttClient mqttClient)
-    {
-        _mqttClient = mqttClient;
-    }
+    private HrtPositionsSubscription(IMqttClient mqttClient) => _mqttClient = mqttClient;
 
-    public void Dispose()
-    {
-        _mqttClient?.Dispose();
-    }
+    public void Dispose() => _mqttClient?.Dispose();
 }
