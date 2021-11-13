@@ -32,7 +32,11 @@ public class GeofenceActor : IActor
                         _vehiclesInZone.Add(position.VehicleId);
                         _cluster.MemberList.BroadcastEvent(new Notification
                         {
-                            Message = $"{position.VehicleId} from {_organizationName} entered the zone {_circularGeofence.Name}"
+                            VehicleId = position.VehicleId,
+                            OrgId = position.OrgId,
+                            OrgName = _organizationName,
+                            ZoneName = _circularGeofence.Name,
+                            Event = GeofenceEvent.Enter
                         });
                     }
                 }
@@ -43,7 +47,11 @@ public class GeofenceActor : IActor
                         _vehiclesInZone.Remove(position.VehicleId);
                         _cluster.MemberList.BroadcastEvent(new Notification
                         {
-                            Message = $"{position.VehicleId} from {_organizationName} left the zone {_circularGeofence.Name}"
+                            VehicleId = position.VehicleId,
+                            OrgId = position.OrgId,
+                            OrgName = _organizationName,
+                            ZoneName = _circularGeofence.Name,
+                            Event = GeofenceEvent.Exit
                         });
                     }   
                 }
