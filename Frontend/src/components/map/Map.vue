@@ -51,14 +51,11 @@ export default defineComponent({
 
     const vehicleStates: VehicleStates = {};
 
-    if(this.hubConnection !== undefined) {
-      this.hubConnection.onPositions(positions => {
-        for(const position of positions.positions) {
-          handlePositionEvent(vehicleStates, position);
-        }
-      })
-
-    }
+    this.hubConnection?.onPositions(positions => {
+      for(const position of positions.positions) {
+        handlePositionEvent(vehicleStates, position);
+      }
+    });
 
     this.map.on('load', () => {
 
@@ -67,7 +64,7 @@ export default defineComponent({
       addVehicleTrailLayer(this.map);
       addGeofencesLayer(this.map);
 
-      addVehicleDetailsPopup(this.map);
+      addVehicleDetailsPopup(this.map); 
 
       if(this.hubConnection !== undefined)
         handleViewportUpdates(this.map, this.hubConnection);
@@ -79,6 +76,10 @@ export default defineComponent({
 
     });
 
+  },
+
+  unmounted() {
+    this.hubConnection?.clearPositionsCallback();
   },
 
   watch: {

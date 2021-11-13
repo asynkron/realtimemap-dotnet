@@ -25,7 +25,9 @@ export interface NotificationDto {
 export interface HubConnection {
   setViewport(swLng: number, swLat: number, neLng: number, neLat: number);
   onPositions(callback: (positions: PositionsDto) => void);
+  clearPositionsCallback();
   onNotification(callback: (notification: NotificationDto) => void);
+  clearNotificationCallback();
   disconnect(): Promise<void>;
 }
 
@@ -61,10 +63,18 @@ export const connectToHub = async (): Promise<HubConnection> => {
       });
     },
 
+    clearPositionsCallback() {
+      connection.off("positions");
+    },
+
     onNotification(callback: (notification: NotificationDto) => void) {
       connection.on("notification", (notification: NotificationDto) => {
         callback(notification);
       });
+    },
+
+    clearNotificationCallback() {
+      connection.off("notification");
     },
 
     async disconnect() {
