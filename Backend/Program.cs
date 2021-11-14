@@ -1,12 +1,18 @@
+using System.Diagnostics;
 using Backend.Api;
 using Backend.Hubs;
 using Backend.MQTT;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using Log = Serilog.Log;
 
 var builder = WebApplication.CreateBuilder(args);
 
 ConfigureLogging(builder);
+ConfigureTracing(builder);
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
@@ -44,7 +50,23 @@ finally
 static void ConfigureLogging(WebApplicationBuilder builder)
     => builder.Host.UseSerilog((context, cfg)
         => cfg
-            .Enrich.FromLogContext()
-            .Enrich.WithProperty("Service", builder.Configuration["Service:Name"])
-            .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+            .Enrich.WithProperty("service", builder.Configuration["Service:Name"])
+            .Enrich.WithProperty("env", builder.Environment.EnvironmentName)
+            .Enrich.With<TraceIdEnricher>()
             .ReadFrom.Configuration(context.Configuration));
+
+static void ConfigureTracing(WebApplicationBuilder builder) =>
+    builder.Services.AddOpenTelemetryTracing(b =>
+        b.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration["Service:Name"]))
+            .AddAspNetCoreInstrumentation(opt => opt.RecordException = true)
+            .AddJaegerExporter());
+
+public class TraceIdEnricher : ILogEventEnricher
+{
+    public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
+    {
+        if (Activity.Current != null)
+            logEvent.AddOrUpdateProperty(propertyFactory.CreateProperty(
+                "traceID", Activity.Current.TraceId.ToHexString()));
+    }
+}
