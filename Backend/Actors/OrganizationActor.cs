@@ -1,4 +1,5 @@
 using Backend.Models;
+using Backend.ProtoActorTracing;
 
 namespace Backend.Actors;
 
@@ -20,7 +21,8 @@ public class OrganizationActor : OrganizationActorBase
 
         _organizationName = organization.Name;
 
-        _logger.LogInformation("Started actor for organization: {OrganizationId} - {OrganizationName}", organizationId, _organizationName);
+        _logger.LogInformation("Started actor for organization: {OrganizationId} - {OrganizationName}", organizationId,
+            _organizationName);
 
         foreach (var geofence in organization.Geofences)
         {
@@ -40,10 +42,11 @@ public class OrganizationActor : OrganizationActorBase
     private void CreateGeofenceActor(CircularGeofence circularGeofence)
     {
         var geofenceProps = Props.FromProducer(() => new GeofenceActor(
-            _organizationName,
-            circularGeofence,
-            Cluster
-        ));
+                _organizationName,
+                circularGeofence,
+                Cluster
+            ))
+            .WithOpenTelemetryTracing();
 
         Context.Spawn(geofenceProps);
     }

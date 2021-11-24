@@ -1,4 +1,5 @@
 ﻿using Backend.Actors;
+using Backend.ProtoActorTracing;
 using Google.Protobuf.WellKnownTypes;
 using k8s;
 using Proto.Cluster.Cache;
@@ -34,17 +35,20 @@ public static class ProtoActorExtensions
                     .WithDeadLetterRequestLogging(true)
                     .WithDeveloperThreadPoolStatsLogging(true)
                     .WithDeveloperReceiveLogging(TimeSpan.FromSeconds(5));
+                // TODO: check WithConfigureProps to add tracing to each actor
             }
 
             var system = new ActorSystem(actorSystemConfig);
 
             var vehicleProps = Props
                 .FromProducer(() => new VehicleActorActor((c, _) =>
-                    ActivatorUtilities.CreateInstance<VehicleActor>(provider, c)));
+                    ActivatorUtilities.CreateInstance<VehicleActor>(provider, c)))
+                .WithOpenTelemetryTracing();
 
             var organizationProps = Props
                 .FromProducer(() => new OrganizationActorActor((c, _) =>
-                    ActivatorUtilities.CreateInstance<OrganizationActor>(provider, c)));
+                    ActivatorUtilities.CreateInstance<OrganizationActor>(provider, c)))
+                .WithOpenTelemetryTracing();
 
             var (remoteConfig, clusterProvider) = ConfigureClustering(config);
 
@@ -58,6 +62,8 @@ public static class ProtoActorExtensions
                 )
                 .Cluster()
                 .WithPidCacheInvalidation();
+
+            system.Root.WithSenderMiddleware(OpenTelemetryExtensions.OpenTelemetrySenderMiddleware());
 
             return system;
         });

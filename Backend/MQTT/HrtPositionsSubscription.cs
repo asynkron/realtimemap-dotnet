@@ -1,13 +1,16 @@
-﻿using System.Security.Authentication;
+﻿using System.Diagnostics;
+using System.Security.Authentication;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet.Protocol;
+using OpenTelemetry.Trace;
 
 namespace Backend.MQTT;
 
 public class HrtPositionsSubscription : IDisposable
 {
+    const string ReceiveActivityName = $"mqtt.receive {nameof(HrtPositionUpdate)}";
     public static async Task<HrtPositionsSubscription> Start(
         string sharedSubscriptionGroupName,
         Func<HrtPositionUpdate, Task> onPositionUpdate,
@@ -62,6 +65,8 @@ public class HrtPositionsSubscription : IDisposable
 
         mqttClient.UseApplicationMessageReceivedHandler(async args =>
         {
+            using var activity = MqttActivitySource.ActivitySource.StartActivity(ReceiveActivityName, ActivityKind.Consumer);
+            
             try
             {
                 logger.LogDebug("Received message {@Message}", args.ApplicationMessage);
@@ -74,6 +79,8 @@ public class HrtPositionsSubscription : IDisposable
             catch (Exception e)
             {
                 logger.LogError(e, "Error while processing message {@Message}", args.ApplicationMessage);
+                activity?.RecordException(e);
+                activity?.SetStatus(ActivityStatusCode.Error);
             }
         });
 

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Backend.Api;
 using Backend.Hubs;
 using Backend.MQTT;
+using Backend.ProtoActorTracing;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
@@ -59,6 +60,9 @@ static void ConfigureTracing(WebApplicationBuilder builder) =>
     builder.Services.AddOpenTelemetryTracing(b =>
         b.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration["Service:Name"]))
             .AddAspNetCoreInstrumentation(opt => opt.RecordException = true)
+            .AddMqttInstrumentation()
+            .AddSignalRInstrumentation()
+            .AddProtoActorInstrumentation()
             .AddJaegerExporter());
 
 public class TraceIdEnricher : ILogEventEnricher

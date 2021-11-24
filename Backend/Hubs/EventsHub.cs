@@ -1,6 +1,9 @@
-﻿using Backend.Actors;
+﻿using System.Diagnostics;
+using Backend.Actors;
 using Backend.DTO;
+using Backend.ProtoActorTracing;
 using Microsoft.AspNetCore.SignalR;
+using OpenTelemetry.Trace;
 
 namespace Backend.Hubs;
 
@@ -9,10 +12,12 @@ public class EventsHub : Hub
     private readonly Cluster _cluster;
     private readonly IHubContext<EventsHub> _eventsHubContext;
     private readonly ILogger<EventsHub> _logger;
+    private readonly IRootContext _senderContext;
 
     public EventsHub(Cluster cluster, IHubContext<EventsHub> eventsHubContext, ILogger<EventsHub> logger)
     {
         _cluster = cluster;
+        _senderContext = cluster.System.Root.WithOpenTelemetry();
         _logger = logger;
 
         // since the Hub is scoped per request, we need the IHubContext to be able to
@@ -33,9 +38,10 @@ public class EventsHub : Hub
         var connectionId = Context.ConnectionId;
         UserActorPid = _cluster.System.Root.Spawn(
             Props.FromProducer(() => new UserActor(
-                batch => SendPositionBatch(connectionId, batch),
-                notification => SendNotification(connectionId, notification)
-            ))
+                    batch => SendPositionBatch(connectionId, batch),
+                    notification => SendNotification(connectionId, notification)
+                ))
+                .WithOpenTelemetryTracing()
         );
 
         return Task.CompletedTask;
@@ -43,6 +49,12 @@ public class EventsHub : Hub
 
     public Task SetViewport(double swLng, double swLat, double neLng, double neLat)
     {
+        using var activity = SignalRActivitySource.ActivitySource.StartActivity(
+            "hub.request " + nameof(SetViewport),
+            ActivityKind.Server);
+        activity?.SetTag("viewport", $"({swLat}, {swLng}),({neLat}, {neLng})");
+        activity?.SetTag("connection.id", Context.ConnectionId);
+
         _logger.LogInformation("Client {ClientId} setting viewport to ({SWLat}, {SWLng}),({NELat}, {NELng})",
             Context.ConnectionId, swLat, swLng, neLat, neLng);
 
@@ -59,17 +71,49 @@ public class EventsHub : Hub
     }
 
     private async Task SendPositionBatch(string connectionId, PositionBatch batch)
-        => await _eventsHubContext.Clients.Client(connectionId).SendAsync("positions",
-            new PositionsDto
-            {
-                Positions = batch.Positions
-                    .Select(PositionDto.MapFrom)
-                    .ToArray()
-            });
+    {
+        using var activity = SignalRActivitySource.ActivitySource.StartActivity(
+            "hub.send " + nameof(PositionBatch),
+            ActivityKind.Client);
+        activity?.SetTag("connection.id", connectionId);
+
+        try
+        {
+            await _eventsHubContext.Clients.Client(connectionId).SendAsync("positions",
+                new PositionsDto
+                {
+                    Positions = batch.Positions
+                        .Select(PositionDto.MapFrom)
+                        .ToArray()
+                });
+        }
+        catch (Exception e)
+        {
+            activity?.RecordException(e);
+            activity?.SetStatus(ActivityStatusCode.Error);
+            throw;
+        }
+    }
 
     private async Task SendNotification(string connectionId, Notification notification)
-        => await _eventsHubContext.Clients.Client(connectionId)
-            .SendAsync("notification", NotificationDto.MapFrom(notification));
+    {
+        using var activity = SignalRActivitySource.ActivitySource.StartActivity(
+            "hub.send " + nameof(Notification),
+            ActivityKind.Client);
+        activity?.SetTag("connection.id", connectionId);
+
+        try
+        {
+            await _eventsHubContext.Clients.Client(connectionId)
+                .SendAsync("notification", NotificationDto.MapFrom(notification));
+        }
+        catch (Exception e)
+        {
+            activity?.RecordException(e);
+            activity?.SetStatus(ActivityStatusCode.Error);
+            throw;
+        }
+    }
 
     public override async Task OnDisconnectedAsync(Exception exception)
     {

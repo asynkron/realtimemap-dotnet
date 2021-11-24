@@ -1,17 +1,20 @@
+using Backend.ProtoActorTracing;
+
 namespace Backend.MQTT;
 
 public class MqttIngress : IHostedService
 {
     private readonly IConfiguration _configuration;
     private readonly Cluster _cluster;
+    private readonly IRootContext _senderContext;
     private readonly ILoggerFactory _loggerFactory;
-
     private HrtPositionsSubscription _hrtPositionsSubscription;
 
     public MqttIngress(IConfiguration configuration, Cluster cluster, ILoggerFactory loggerFactory)
     {
         _configuration = configuration;
         _cluster = cluster;
+        _senderContext = _cluster.System.Root.WithOpenTelemetry();
         _loggerFactory = loggerFactory;
     }
 
@@ -51,7 +54,7 @@ public class MqttIngress : IHostedService
 
         await _cluster
             .GetVehicleActor(vehicleId)
-            .OnPosition(position, CancellationTokens.FromSeconds(1));
+            .OnPosition(position, _senderContext, CancellationTokens.FromSeconds(1));
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
