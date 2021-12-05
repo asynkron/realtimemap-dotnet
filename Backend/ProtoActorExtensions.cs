@@ -1,5 +1,4 @@
 ﻿using Backend.Actors;
-using Backend.ProtoActorTracing;
 using Google.Protobuf.WellKnownTypes;
 using k8s;
 using Proto.Cluster.Cache;
@@ -7,6 +6,7 @@ using Proto.Cluster.Kubernetes;
 using Proto.Cluster.Partition;
 using Proto.Cluster.Testing;
 using Proto.DependencyInjection;
+using Proto.OpenTelemetry;
 using Proto.Remote;
 using Proto.Remote.GrpcCore;
 
@@ -43,12 +43,12 @@ public static class ProtoActorExtensions
             var vehicleProps = Props
                 .FromProducer(() => new VehicleActorActor((c, _) =>
                     ActivatorUtilities.CreateInstance<VehicleActor>(provider, c)))
-                .WithOpenTelemetryTracing();
+                .WithTracing();
 
             var organizationProps = Props
                 .FromProducer(() => new OrganizationActorActor((c, _) =>
                     ActivatorUtilities.CreateInstance<OrganizationActor>(provider, c)))
-                .WithOpenTelemetryTracing();
+                .WithTracing();
 
             var (remoteConfig, clusterProvider) = ConfigureClustering(config);
 
@@ -62,8 +62,6 @@ public static class ProtoActorExtensions
                 )
                 .Cluster()
                 .WithPidCacheInvalidation();
-
-            system.Root.WithSenderMiddleware(OpenTelemetryExtensions.OpenTelemetrySenderMiddleware());
 
             return system;
         });

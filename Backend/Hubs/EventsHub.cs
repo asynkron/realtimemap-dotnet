@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
 using Backend.Actors;
 using Backend.DTO;
-using Backend.ProtoActorTracing;
 using Microsoft.AspNetCore.SignalR;
 using OpenTelemetry.Trace;
+using Proto.OpenTelemetry;
 
 namespace Backend.Hubs;
 
@@ -17,7 +17,7 @@ public class EventsHub : Hub
     public EventsHub(Cluster cluster, IHubContext<EventsHub> eventsHubContext, ILogger<EventsHub> logger)
     {
         _cluster = cluster;
-        _senderContext = cluster.System.Root.WithOpenTelemetry();
+        _senderContext = cluster.System.Root.WithTracing();
         _logger = logger;
 
         // since the Hub is scoped per request, we need the IHubContext to be able to
@@ -41,7 +41,7 @@ public class EventsHub : Hub
                     batch => SendPositionBatch(connectionId, batch),
                     notification => SendNotification(connectionId, notification)
                 ))
-                .WithOpenTelemetryTracing()
+                .WithTracing()
         );
 
         return Task.CompletedTask;
@@ -51,14 +51,15 @@ public class EventsHub : Hub
     {
         using var activity = SignalRActivitySource.ActivitySource.StartActivity(
             "hub.request " + nameof(SetViewport),
-            ActivityKind.Server);
+            ActivityKind.Server
+        );
         activity?.SetTag("viewport", $"({swLat}, {swLng}),({neLat}, {neLng})");
         activity?.SetTag("connection.id", Context.ConnectionId);
 
         _logger.LogInformation("Client {ClientId} setting viewport to ({SWLat}, {SWLng}),({NELat}, {NELng})",
             Context.ConnectionId, swLat, swLng, neLat, neLng);
 
-        _cluster.System.Root.Send(UserActorPid, new UpdateViewport
+        _senderContext.Send(UserActorPid, new UpdateViewport
         {
             Viewport = new Viewport
             {

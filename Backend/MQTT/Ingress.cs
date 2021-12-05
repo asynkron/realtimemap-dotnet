@@ -1,4 +1,4 @@
-using Backend.ProtoActorTracing;
+using Proto.OpenTelemetry;
 
 namespace Backend.MQTT;
 
@@ -14,7 +14,7 @@ public class MqttIngress : IHostedService
     {
         _configuration = configuration;
         _cluster = cluster;
-        _senderContext = _cluster.System.Root.WithOpenTelemetry();
+        _senderContext = _cluster.System.Root.WithTracing();
         _loggerFactory = loggerFactory;
     }
 

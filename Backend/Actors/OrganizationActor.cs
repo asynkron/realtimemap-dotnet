@@ -1,5 +1,5 @@
 using Backend.Models;
-using Backend.ProtoActorTracing;
+using Proto.OpenTelemetry;
 
 namespace Backend.Actors;
 
@@ -46,7 +46,7 @@ public class OrganizationActor : OrganizationActorBase
                 circularGeofence,
                 Cluster
             ))
-            .WithOpenTelemetryTracing();
+            .WithTracing();
 
         Context.Spawn(geofenceProps);
     }

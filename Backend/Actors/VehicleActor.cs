@@ -1,4 +1,4 @@
-using Backend.ProtoActorTracing;
+using Proto.OpenTelemetry;
 
 namespace Backend.Actors;
 
@@ -12,7 +12,7 @@ public class VehicleActor : VehicleActorBase
     public VehicleActor(IContext context) : base(context)
     {
         _positionsHistory = new VehiclePositionHistory();
-        _senderContext = Context.System.Root.WithOpenTelemetry();
+        _senderContext = Context.System.Root.WithTracing();
     }
 
     public override Task OnPosition(Position position)
