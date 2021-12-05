@@ -15,7 +15,7 @@
         <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc8" />
         <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc8" />
         <PackageReference Include="Proto.Cluster" Version="0.24.1-alpha.0.42" />
-        <PackageReference Include="Proto.Cluster.CodeGen" Version="0.24.1-alpha.0.42" />
+        <PackageReference Include="Proto.Cluster.CodeGen" Version="0.26.1-alpha.0.1" />
         <PackageReference Include="Proto.Cluster.Kubernetes" Version="0.24.1-alpha.0.42" />
         <PackageReference Include="Proto.Cluster.TestProvider" Version="0.24.1-alpha.0.42" />
         <PackageReference Include="Proto.Remote.GrpcCore" Version="0.24.1-alpha.0.42" />
