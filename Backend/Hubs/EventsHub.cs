@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using Backend.Actors;
 using Backend.DTO;
+using Backend.Infrastructure.Metrics;
+using Backend.Infrastructure.Tracing;
 using Microsoft.AspNetCore.SignalR;
 using OpenTelemetry.Trace;
 using Proto.OpenTelemetry;
@@ -34,7 +36,8 @@ public class EventsHub : Hub
     public override Task OnConnectedAsync()
     {
         _logger.LogInformation("Client {ClientId} connected", Context.ConnectionId);
-
+        RealtimeMapMetrics.SignalRConnections.ChangeBy(1);
+        
         var connectionId = Context.ConnectionId;
         UserActorPid = _cluster.System.Root.Spawn(
             Props.FromProducer(() => new UserActor(
@@ -119,6 +122,7 @@ public class EventsHub : Hub
     public override async Task OnDisconnectedAsync(Exception exception)
     {
         _logger.LogDebug("Client {ClientId} disconnected", Context.ConnectionId);
+        RealtimeMapMetrics.SignalRConnections.ChangeBy(-1);
 
         await _cluster.System.Root.StopAsync(UserActorPid);
     }

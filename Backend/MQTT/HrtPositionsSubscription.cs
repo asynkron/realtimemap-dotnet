@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Security.Authentication;
+using Backend.Infrastructure.Metrics;
+using Backend.Infrastructure.Tracing;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
@@ -65,6 +67,7 @@ public class HrtPositionsSubscription : IDisposable
 
         mqttClient.UseApplicationMessageReceivedHandler(async args =>
         {
+            RealtimeMapMetrics.MqttMessagesReceived.Add(1);
             using var activity = MqttActivitySource.ActivitySource.StartActivity(ReceiveActivityName, ActivityKind.Consumer);
             
             try

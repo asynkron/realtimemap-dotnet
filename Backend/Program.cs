@@ -1,7 +1,11 @@
 using System.Diagnostics;
 using Backend.Api;
 using Backend.Hubs;
+using Backend.Infrastructure.Metrics;
+using Backend.Infrastructure.Tracing;
 using Backend.MQTT;
+using Microsoft.AspNetCore.SignalR;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Proto.OpenTelemetry;
@@ -14,6 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 ConfigureLogging(builder);
 ConfigureTracing(builder);
+ConfigureMetrics(builder);
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
@@ -30,6 +35,7 @@ app.UseCors(b => b
 );
 
 app.UseRouting();
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 app.MapHub<EventsHub>("/events");
 app.MapOrganizationApi();
@@ -64,6 +70,13 @@ static void ConfigureTracing(WebApplicationBuilder builder) =>
             .AddSignalRInstrumentation()
             .AddProtoActorInstrumentation()
             .AddJaegerExporter());
+
+static void ConfigureMetrics(WebApplicationBuilder builder) =>
+    builder.Services.AddOpenTelemetryMetrics(b =>
+        b   .AddAspNetCoreInstrumentation()
+            .AddRealtimeMapInstrumentation()
+            .AddPrometheusExporter(poe => poe.ScrapeResponseCacheDurationMilliseconds = 1000)
+    );
 
 public class TraceIdEnricher : ILogEventEnricher
 {
