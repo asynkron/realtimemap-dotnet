@@ -4,7 +4,6 @@ using Backend.Hubs;
 using Backend.Infrastructure.Metrics;
 using Backend.Infrastructure.Tracing;
 using Backend.MQTT;
-using Microsoft.AspNetCore.SignalR;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -72,9 +71,10 @@ static void ConfigureTracing(WebApplicationBuilder builder) =>
             .AddJaegerExporter());
 
 static void ConfigureMetrics(WebApplicationBuilder builder) =>
-    builder.Services.AddOpenTelemetryMetrics(b =>
-        b   .AddAspNetCoreInstrumentation()
+    builder.Services.AddOpenTelemetryMetrics(b => b   
+            .AddAspNetCoreInstrumentation()
             .AddRealtimeMapInstrumentation()
+            .AddProtoActorInstrumentation()
             .AddPrometheusExporter(poe => poe.ScrapeResponseCacheDurationMilliseconds = 1000)
     );
 

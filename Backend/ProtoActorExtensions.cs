@@ -25,6 +25,7 @@ public static class ProtoActorExtensions
 
             var actorSystemConfig = ActorSystemConfig
                 .Setup()
+                .WithMetrics()
                 .WithDeadLetterThrottleCount(3)
                 .WithDeadLetterThrottleInterval(TimeSpan.FromSeconds(1));
 
