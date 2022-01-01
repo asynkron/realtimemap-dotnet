@@ -94,7 +94,7 @@ public class EventsHub : Hub
         catch (Exception e)
         {
             activity?.RecordException(e);
-            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.SetStatus(Status.Error);
             throw;
         }
     }
@@ -114,7 +114,7 @@ public class EventsHub : Hub
         catch (Exception e)
         {
             activity?.RecordException(e);
-            activity?.SetStatus(ActivityStatusCode.Error);
+            activity?.SetStatus(Status.Error);
             throw;
         }
     }

@@ -34,8 +34,6 @@ app.UseCors(b => b
 );
 
 app.UseRouting();
-app.UseOpenTelemetryPrometheusScrapingEndpoint();
-
 app.MapHub<EventsHub>("/events");
 app.MapOrganizationApi();
 app.MapTrailApi();
@@ -56,26 +54,41 @@ finally
 static void ConfigureLogging(WebApplicationBuilder builder)
     => builder.Host.UseSerilog((context, cfg)
         => cfg
+            .ReadFrom.Configuration(context.Configuration)
             .Enrich.WithProperty("service", builder.Configuration["Service:Name"])
             .Enrich.WithProperty("env", builder.Environment.EnvironmentName)
             .Enrich.With<TraceIdEnricher>()
-            .ReadFrom.Configuration(context.Configuration));
+    );
 
 static void ConfigureTracing(WebApplicationBuilder builder) =>
     builder.Services.AddOpenTelemetryTracing(b =>
-        b.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Configuration["Service:Name"]))
+        b.SetResourceBuilder(ResourceBuilder
+                .CreateDefault()
+                .AddService(builder.Configuration["Service:Name"])
+                // add additional "service" tag to facilitate Grafana traces to logs correlation
+                .AddAttributes(new KeyValuePair<string, object>[]
+                    { new("service", builder.Configuration["Service:Name"]) })
+            )
             .AddAspNetCoreInstrumentation(opt => opt.RecordException = true)
             .AddMqttInstrumentation()
             .AddSignalRInstrumentation()
             .AddProtoActorInstrumentation()
-            .AddJaegerExporter());
+            .AddOtlpExporter(opt =>
+            {
+                opt.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
+                opt.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000;
+            }));
 
 static void ConfigureMetrics(WebApplicationBuilder builder) =>
-    builder.Services.AddOpenTelemetryMetrics(b => b   
-            .AddAspNetCoreInstrumentation()
-            .AddRealtimeMapInstrumentation()
-            .AddProtoActorInstrumentation()
-            .AddPrometheusExporter(poe => poe.ScrapeResponseCacheDurationMilliseconds = 1000)
+    builder.Services.AddOpenTelemetryMetrics(b => b
+        .AddAspNetCoreInstrumentation()
+        .AddRealtimeMapInstrumentation()
+        .AddProtoActorInstrumentation()
+        .AddOtlpExporter(opt =>
+        {
+            opt.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
+            opt.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000;
+        })
     );
 
 public class TraceIdEnricher : ILogEventEnricher
@@ -83,7 +96,10 @@ public class TraceIdEnricher : ILogEventEnricher
     public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
     {
         if (Activity.Current != null)
-            logEvent.AddOrUpdateProperty(propertyFactory.CreateProperty(
-                "traceID", Activity.Current.TraceId.ToHexString()));
+        {
+            // facilitate Grafana logs to traces correlation
+            logEvent.AddOrUpdateProperty(
+                propertyFactory.CreateProperty("traceID", Activity.Current.TraceId.ToHexString()));
+        }
     }
 }

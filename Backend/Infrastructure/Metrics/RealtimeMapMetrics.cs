@@ -5,10 +5,10 @@ namespace Backend.Infrastructure.Metrics;
 
 public static class RealtimeMapMetrics
 {
-    private static readonly Meter RealtimeMapMeter = new("MQTT");
+    private static readonly Meter RealtimeMapMeter = new("RealtimeMap");
 
     public static MeterProviderBuilder AddRealtimeMapInstrumentation(this MeterProviderBuilder builder)
-        => builder.AddMeter("MQTT");
+        => builder.AddMeter("RealtimeMap");
 
     public static readonly Counter<long> MqttMessagesReceived = RealtimeMapMeter.CreateCounter<long>(
         "app_mqtt_messages_received",

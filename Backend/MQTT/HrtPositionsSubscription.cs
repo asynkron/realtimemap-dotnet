@@ -64,7 +64,7 @@ public class HrtPositionsSubscription : IDisposable
                 logger.LogWarning(e, "Unable to reconnect to to MQTT server");
             }
         });
-
+        
         mqttClient.UseApplicationMessageReceivedHandler(async args =>
         {
             RealtimeMapMetrics.MqttMessagesReceived.Add(1);
@@ -72,7 +72,7 @@ public class HrtPositionsSubscription : IDisposable
             
             try
             {
-                logger.LogDebug("Received message {@Message}", args.ApplicationMessage);
+                logger.LogDebug("Received message on {@Topic}", args.ApplicationMessage.Topic);
 
                 var hrtPositionUpdate = HrtPositionUpdate.ParseFromMqttMessage(args.ApplicationMessage);
 
@@ -83,7 +83,7 @@ public class HrtPositionsSubscription : IDisposable
             {
                 logger.LogError(e, "Error while processing message {@Message}", args.ApplicationMessage);
                 activity?.RecordException(e);
-                activity?.SetStatus(ActivityStatusCode.Error);
+                activity?.SetStatus(Status.Error);
             }
         });
 
