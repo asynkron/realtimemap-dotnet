@@ -4,29 +4,19 @@
     protocols:
       grpc:
         
-  # dummy receiver for spanmetrics pipeline that's never used, because a pipeline is required to have one.
-  otlp/spanmetrics:
-    protocols:
-      grpc:
-        endpoint: "localhost:12345"
-
 exporters:
   
   # export metrics on Prometheus scrape endpoint
   prometheus:
     endpoint: 0.0.0.0:8889
     send_timestamps: true
+    # service name and instance id will become labels on metrics
+    resource_to_telemetry_conversion:
+      enabled: true
       
   # export traces to Jaeger
   jaeger:
     endpoint: jaeger:14250
-    tls:
-      insecure: true
-      
-  # this exporter creates a "feedback loop" for metrics produced from traces
-  # it will send metrics to otlp receive on this collector
-  otlp/spanmetrics:
-    endpoint: localhost:4317
     tls:
       insecure: true
 
@@ -39,13 +29,6 @@ processors:
   # improve efficiency by batching
   batch:
     
-  # calculate metrics (counts and duration histograms) from traces for each operation
-  # warning: depending on the system, this may create a lot of metrics, since operation might have high cardinality 
-  # e.g. every unique http path called on the application
-  # in case this is not acceptable, create proper histograms in the application itself
-  spanmetrics:
-    metrics_exporter: otlp/spanmetrics # must match exporter configured in metrics/spanmetrics pipeline
-
 extensions:
    
   # for debugging the collector
@@ -62,14 +45,9 @@ service:
     # send to Jaeger
     traces:
       receivers: [otlp]
-      processors: [spanmetrics, probabilistic_sampler, batch]
+      processors: [probabilistic_sampler, batch]
       exporters: [jaeger]
       
-    # receive metrics from spanmetrics processor
-    # send them to "feedback loop" exporter (feed back to otlp endpoint)
-    metrics/spanmetrics:
-      receivers: [otlp/spanmetrics]
-      exporters: [otlp/spanmetrics]
     
     # receive metrics from Open Telemetry Protocol endpoint
     # expose on Prometheus scraping endpoint

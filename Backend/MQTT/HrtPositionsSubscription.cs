@@ -65,26 +65,32 @@ public class HrtPositionsSubscription : IDisposable
             }
         });
         
-        mqttClient.UseApplicationMessageReceivedHandler(async args =>
+        mqttClient.UseApplicationMessageReceivedHandler(args =>
         {
-            RealtimeMapMetrics.MqttMessagesReceived.Add(1);
-            using var activity = MqttActivitySource.ActivitySource.StartActivity(ReceiveActivityName, ActivityKind.Consumer);
-            
-            try
+            async Task Inner()
             {
-                logger.LogDebug("Received message on {@Topic}", args.ApplicationMessage.Topic);
 
-                var hrtPositionUpdate = HrtPositionUpdate.ParseFromMqttMessage(args.ApplicationMessage);
+                using var activity =
+                    MqttActivitySource.ActivitySource.StartActivity(ReceiveActivityName, ActivityKind.Consumer);
 
-                if (hrtPositionUpdate.HasValidPosition)
-                    await onPositionUpdate(hrtPositionUpdate);
+                try
+                {
+                    logger.LogDebug("Received message on {@Topic}", args.ApplicationMessage.Topic);
+
+                    var hrtPositionUpdate = HrtPositionUpdate.ParseFromMqttMessage(args.ApplicationMessage);
+
+                    if (hrtPositionUpdate.HasValidPosition)
+                        await onPositionUpdate(hrtPositionUpdate);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Error while processing message {@Message}", args.ApplicationMessage);
+                    activity?.RecordException(e);
+                    activity?.SetStatus(Status.Error);
+                }
             }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Error while processing message {@Message}", args.ApplicationMessage);
-                activity?.RecordException(e);
-                activity?.SetStatus(Status.Error);
-            }
+
+            return RealtimeMapMetrics.MqttMessageDuration.Observe(Inner);
         });
 
         logger.LogInformation("Connecting to MQTT server");

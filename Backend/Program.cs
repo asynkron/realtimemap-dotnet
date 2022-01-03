@@ -80,15 +80,19 @@ static void ConfigureTracing(WebApplicationBuilder builder) =>
             }));
 
 static void ConfigureMetrics(WebApplicationBuilder builder) =>
-    builder.Services.AddOpenTelemetryMetrics(b => b
-        .AddAspNetCoreInstrumentation()
-        .AddRealtimeMapInstrumentation()
-        .AddProtoActorInstrumentation()
-        .AddOtlpExporter(opt =>
-        {
-            opt.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-            opt.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000;
-        })
+    builder.Services.AddOpenTelemetryMetrics(b =>
+        b.SetResourceBuilder(ResourceBuilder
+                .CreateDefault()
+                .AddService(builder.Configuration["Service:Name"])
+            )
+            .AddAspNetCoreInstrumentation()
+            .AddRealtimeMapInstrumentation()
+            .AddProtoActorInstrumentation()
+            .AddOtlpExporter(opt =>
+            {
+                opt.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
+                opt.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000;
+            })
     );
 
 public class TraceIdEnricher : ILogEventEnricher
