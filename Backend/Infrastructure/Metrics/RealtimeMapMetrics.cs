@@ -18,8 +18,12 @@ public static class RealtimeMapMetrics
     public static readonly Histogram<double> MqttMessageDuration = RealtimeMapMeter.CreateHistogram<double>(
         "app_mqtt_message_duration",
         description: "Duration of MQTT message processing");
+    
+    public static readonly Histogram<double> MqttMessageLeadTime = RealtimeMapMeter.CreateHistogram<double>(
+        "app_mqtt_message_lead_time",
+        description: "Lead time of the messages received from MQTT");
 
-    public static AdjustableGauge SignalRConnections = new(
+    public static readonly AdjustableGauge SignalRConnections = new(
         RealtimeMapMeter,
         "app_signalr_connections",
         description: "Number of SignalR connections");

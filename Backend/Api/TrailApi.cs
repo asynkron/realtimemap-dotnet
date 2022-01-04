@@ -1,4 +1,5 @@
 ﻿using Backend.DTO;
+using Proto.OpenTelemetry;
 
 namespace Backend.Api;
 
@@ -10,7 +11,10 @@ public static class TrailApi
         {
             var positionsHistory = await cluster
                 .GetVehicleActor(vehicleId)
-                .GetPositionsHistory(new GetPositionsHistoryRequest(), CancellationToken.None);
+                .GetPositionsHistory(
+                    new GetPositionsHistoryRequest(), 
+                    cluster.System.Root.WithTracing(),
+                    CancellationToken.None);
 
             var positions = positionsHistory.Positions
                 .Select(PositionDto.MapFrom)

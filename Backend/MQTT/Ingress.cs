@@ -1,3 +1,4 @@
+using Backend.Infrastructure.Metrics;
 using Proto.OpenTelemetry;
 
 namespace Backend.MQTT;
@@ -48,13 +49,16 @@ public class MqttIngress : IHostedService
             VehicleId = vehicleId,
             Heading = (int)hrtPositionUpdate.VehiclePosition.Hdg.GetValueOrDefault(),
             DoorsOpen = hrtPositionUpdate.VehiclePosition.Drst == 1,
-            Timestamp = hrtPositionUpdate.VehiclePosition.Tst.GetValueOrDefault().Ticks,
+            Timestamp = hrtPositionUpdate.VehiclePosition.Tst.GetValueOrDefault().ToUnixTimeMilliseconds(),
             Speed = hrtPositionUpdate.VehiclePosition.Spd.GetValueOrDefault()
         };
 
         await _cluster
             .GetVehicleActor(vehicleId)
             .OnPosition(position, _senderContext, CancellationTokens.FromSeconds(1));
+
+        RealtimeMapMetrics.MqttMessageLeadTime.Record(
+            (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - position.Timestamp) / 1000.0);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
