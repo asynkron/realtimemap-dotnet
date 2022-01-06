@@ -21,6 +21,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
+  "id": 4,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -44,7 +45,7 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "max": 500,
+          "max": 1200,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
@@ -108,7 +109,7 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "max": 500,
+          "max": 0.05,
           "min": 0,
           "thresholds": {
             "mode": "absolute",
@@ -119,7 +120,7 @@
               },
               {
                 "color": "semi-dark-red",
-                "value": 50
+                "value": 0.01
               }
             ]
           },
@@ -176,8 +177,75 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "semi-dark-blue",
+                "color": "green",
                 "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 7,
+        "x": 10,
+        "y": 1
+      },
+      "id": 36,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.3.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "my_prometheus"
+          },
+          "exemplar": false,
+          "expr": "histogram_quantile(0.99, sum(rate(app_mqtt_message_lead_time_bucket[$__rate_interval])) by (le))",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "MQTT message lead time",
+      "type": "stat"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
               }
             ]
           }
@@ -186,11 +254,11 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 4,
-        "x": 10,
+        "w": 5,
+        "x": 17,
         "y": 1
       },
-      "id": 8,
+      "id": 16,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -213,8 +281,130 @@
             "uid": "Prometheus"
           },
           "exemplar": false,
-          "expr": "sum(protocluster_virtualactors{clusterkind=\"VehicleActor\"})",
+          "expr": "avg(protocluster_members_count)",
           "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Cluster members",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "my_loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 5,
+        "x": 0,
+        "y": 6
+      },
+      "id": 29,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.3.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "my_loki"
+          },
+          "expr": "sum(count_over_time({service=\"realtime-map\"} | json | level = \"error\" or level = \"warning\" [10m]))",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Errors and warnings last 10m",
+      "type": "stat"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "semi-dark-blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 7,
+        "x": 10,
+        "y": 6
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.3.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "exemplar": false,
+          "expr": "sum(protocluster_virtualactors{clusterkind=\"VehicleActor\"})",
+          "instant": false,
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -244,9 +434,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 4,
-        "x": 14,
-        "y": 1
+        "w": 5,
+        "x": 17,
+        "y": 6
       },
       "id": 4,
       "options": {
@@ -282,76 +472,12 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "my_loki"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 5
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 4,
-        "x": 18,
-        "y": 1
-      },
-      "id": 29,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.3.3",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "my_loki"
-          },
-          "expr": "sum(count_over_time({service=\"realtime-map\"} | json | level = \"error\" or level = \"warning\" [10m]))",
-          "instant": true,
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "title": "Errors and warnings last 10m",
-      "type": "stat"
-    },
-    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 11
       },
       "id": 10,
       "panels": [],
@@ -444,7 +570,7 @@
         "h": 6,
         "w": 10,
         "x": 0,
-        "y": 7
+        "y": 12
       },
       "id": 12,
       "options": {
@@ -463,7 +589,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "exemplar": true,
+          "exemplar": false,
           "expr": "sum(protocluster_virtualactors) by (clusterkind)",
           "interval": "",
           "legendFormat": "{{clusterkind}}",
@@ -530,7 +656,7 @@
         "h": 6,
         "w": 12,
         "x": 10,
-        "y": 7
+        "y": 12
       },
       "id": 14,
       "options": {
@@ -549,7 +675,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "exemplar": true,
+          "exemplar": false,
           "expr": "histogram_quantile(0.95, sum(rate(protoactor_actor_messagereceive_duration_bucket{}[$__rate_interval])) by (actortype, le))",
           "interval": "",
           "legendFormat": "{{actortype}}",
@@ -615,7 +741,7 @@
         "h": 6,
         "w": 10,
         "x": 0,
-        "y": 13
+        "y": 18
       },
       "id": 18,
       "options": {
@@ -634,7 +760,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "exemplar": true,
+          "exemplar": false,
           "expr": "sum(rate(protocluster_virtualactor_requestasync_duration_count[$__rate_interval])) by (clusterkind)",
           "interval": "",
           "legendFormat": "{{clusterkind}}",
@@ -701,7 +827,7 @@
         "h": 6,
         "w": 12,
         "x": 10,
-        "y": 13
+        "y": 18
       },
       "id": 19,
       "options": {
@@ -720,7 +846,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "exemplar": true,
+          "exemplar": false,
           "expr": "histogram_quantile(0.95, sum(rate(protocluster_virtualactor_requestasync_duration_bucket[$__rate_interval])) by (clusterkind, le))",
           "interval": "",
           "legendFormat": "req to: {{clusterkind}}",
@@ -787,7 +913,7 @@
         "h": 6,
         "w": 10,
         "x": 0,
-        "y": 19
+        "y": 24
       },
       "id": 21,
       "options": {
@@ -806,7 +932,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "exemplar": true,
+          "exemplar": false,
           "expr": "histogram_quantile(0.99, sum(rate(protoactor_threadpool_latency_duration_bucket[$__rate_interval])) by(id, le))",
           "interval": "",
           "legendFormat": "system {{id}}",
@@ -817,74 +943,12 @@
       "type": "timeseries"
     },
     {
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 4,
-        "x": 18,
-        "y": 19
-      },
-      "id": 16,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "8.3.3",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
-          },
-          "exemplar": false,
-          "expr": "avg(protocluster_members_count)",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Cluster members",
-      "type": "stat"
-    },
-    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 30
       },
       "id": 23,
       "panels": [],
@@ -947,7 +1011,7 @@
         "h": 7,
         "w": 10,
         "x": 0,
-        "y": 26
+        "y": 31
       },
       "id": 25,
       "options": {
@@ -966,7 +1030,7 @@
             "type": "prometheus",
             "uid": "Prometheus"
           },
-          "exemplar": true,
+          "exemplar": false,
           "expr": "sum(rate(app_mqtt_message_duration_count[$__rate_interval])) ",
           "interval": "",
           "legendFormat": "",
@@ -1093,7 +1157,7 @@
         "h": 7,
         "w": 12,
         "x": 10,
-        "y": 26
+        "y": 31
       },
       "id": 34,
       "options": {
@@ -1112,7 +1176,7 @@
             "type": "prometheus",
             "uid": "my_prometheus"
           },
-          "exemplar": true,
+          "exemplar": false,
           "expr": "histogram_quantile(0.95, sum(rate(app_mqtt_message_duration_bucket[$__rate_interval])) by (le))",
           "interval": "",
           "legendFormat": "95p",
@@ -1123,7 +1187,7 @@
             "type": "prometheus",
             "uid": "my_prometheus"
           },
-          "exemplar": true,
+          "exemplar": false,
           "expr": "histogram_quantile(0.99, sum(rate(app_mqtt_message_duration_bucket[$__rate_interval])) by (le))",
           "hide": false,
           "interval": "",
@@ -1135,7 +1199,7 @@
             "type": "prometheus",
             "uid": "my_prometheus"
           },
-          "exemplar": true,
+          "exemplar": false,
           "expr": "histogram_quantile(0.5, sum(rate(app_mqtt_message_duration_bucket[$__rate_interval])) by (le))",
           "hide": false,
           "interval": "",
@@ -1144,6 +1208,209 @@
         }
       ],
       "title": "Message latency",
+      "type": "timeseries"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "message_lead_time"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 10,
+        "x": 0,
+        "y": 38
+      },
+      "id": 38,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "my_prometheus"
+          },
+          "exemplar": false,
+          "expr": "histogram_quantile(0.99, sum(rate(app_mqtt_message_lead_time_bucket[$__rate_interval])) by (le))",
+          "interval": "",
+          "legendFormat": "message_lead_time",
+          "refId": "A"
+        }
+      ],
+      "title": "MQTT message lead time",
+      "type": "timeseries"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "http requests"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 10,
+        "y": 38
+      },
+      "id": 27,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "my_prometheus"
+          },
+          "exemplar": false,
+          "expr": "sum(increase(http_server_duration_count{http_method!=\"OPTIONS\"}[$__interval]))",
+          "interval": "2m",
+          "intervalFactor": 1,
+          "legendFormat": "http requests",
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP request count",
       "type": "timeseries"
     },
     {
@@ -1251,7 +1518,7 @@
         "h": 7,
         "w": 10,
         "x": 0,
-        "y": 33
+        "y": 45
       },
       "id": 31,
       "options": {
@@ -1298,107 +1565,6 @@
       ],
       "title": "Logs by level",
       "type": "timeseries"
-    },
-    {
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "bars",
-            "fillOpacity": 100,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "http requests"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "dark-purple",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 10,
-        "y": 33
-      },
-      "id": 27,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "hidden",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "my_prometheus"
-          },
-          "exemplar": true,
-          "expr": "sum(increase(http_server_duration_count{http_method!=\"OPTIONS\"}[$__interval]))",
-          "interval": "2m",
-          "intervalFactor": 1,
-          "legendFormat": "http requests",
-          "refId": "A"
-        }
-      ],
-      "title": "HTTP request count",
-      "type": "timeseries"
     }
   ],
   "refresh": "10s",
@@ -1415,7 +1581,7 @@
   "timepicker": {},
   "timezone": "",
   "title": "Realtime map",
-  "uid": "XnkfKZ07k1",
-  "version": 1,
+  "uid": "--K-FY07k",
+  "version": 8,
   "weekStart": ""
 }

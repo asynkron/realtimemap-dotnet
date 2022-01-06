@@ -67,17 +67,16 @@ static void ConfigureTracing(WebApplicationBuilder builder) =>
                 .AddService(builder.Configuration["Service:Name"])
                 // add additional "service" tag to facilitate Grafana traces to logs correlation
                 .AddAttributes(new KeyValuePair<string, object>[]
-                    { new("service", builder.Configuration["Service:Name"]) })
+                {
+                    new("service", builder.Configuration["Service:Name"]),
+                    new("env", builder.Environment.EnvironmentName)
+                })
             )
             .AddAspNetCoreInstrumentation(opt => opt.RecordException = true)
             .AddMqttInstrumentation()
             .AddSignalRInstrumentation()
             .AddProtoActorInstrumentation()
-            .AddOtlpExporter(opt =>
-            {
-                opt.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-                opt.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1000;
-            }));
+            .AddOtlpExporter(opt => { opt.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]); }));
 
 static void ConfigureMetrics(WebApplicationBuilder builder) =>
     builder.Services.AddOpenTelemetryMetrics(b =>
@@ -91,7 +90,8 @@ static void ConfigureMetrics(WebApplicationBuilder builder) =>
             .AddOtlpExporter(opt =>
             {
                 opt.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-                opt.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000;
+                opt.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds =
+                    builder.Configuration.GetValue<int>("Otlp:MetricsIntervalMilliseconds");
             })
     );
 
