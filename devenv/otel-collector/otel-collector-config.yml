@@ -1,0 +1,57 @@
+﻿receivers:
+  # receive traces and metrics over Open Telemetry Protocol
+  otlp:
+    protocols:
+      grpc:
+        
+exporters:
+  
+  # export metrics on Prometheus scrape endpoint
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    send_timestamps: true
+    # service name and instance id will become labels on metrics
+    resource_to_telemetry_conversion:
+      enabled: true
+      
+  # export traces to Jaeger
+  jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+
+processors:
+  # we only want a sample of the traces, because we cannot store all of them
+  probabilistic_sampler:
+    hash_seed: 42
+    sampling_percentage: 10
+    
+  # improve efficiency by batching
+  batch:
+    
+extensions:
+   
+  # for debugging the collector
+  zpages:
+    endpoint: :55679
+
+service:
+  extensions: [zpages]
+  pipelines:
+    
+    # receive traces from Open Telemetry Protocol endpoint
+    # calculate metrics and send them to oltp/spanmetrics exporter
+    # take a sample of the traces
+    # send to Jaeger
+    traces:
+      receivers: [otlp]
+      processors: [probabilistic_sampler, batch]
+      exporters: [jaeger]
+      
+    
+    # receive metrics from Open Telemetry Protocol endpoint
+    # expose on Prometheus scraping endpoint
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]

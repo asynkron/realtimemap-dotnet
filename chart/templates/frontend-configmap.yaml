@@ -3,5 +3,4 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-frontend
 data:
-  VUE_APP_BACKEND_URL: "{{ .Values.frontend.config.backendUrl }}"
-  VUE_APP_MAPBOX_TOKEN: "{{ .Values.frontend.config.mapboxToken }}"
+  {{- toYaml .Values.frontend.config | nindent 2 }}

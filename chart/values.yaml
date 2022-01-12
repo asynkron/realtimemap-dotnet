@@ -41,9 +41,8 @@ frontend:
     #   memory: 128Mi
 
   config:
-    backendUrl: /backend
-    mapboxToken: <your access token>
-
+    VUE_APP_BACKEND_URL: /backend
+    VUE_APP_MAPBOX_TOKEN: <your access token>
 
 backend:
   replicaCount: 2
@@ -51,7 +50,7 @@ backend:
   image:
     repository: marcinbudny/protoactor-realtimemap-dotnet-backend
     pullPolicy: IfNotPresent
-    tag: "0.5.0"
+    tag: "0.10.0"
 
   podAnnotations: {}
 
@@ -60,11 +59,6 @@ backend:
 
   securityContext:
     allowPrivilegeEscalation: false
-    # capabilities:
-    #   drop:
-    #   - ALL
-    # readOnlyRootFilesystem: true
-    # runAsNonRoot: true
 
   service:
     type: ClusterIP
@@ -83,9 +77,8 @@ backend:
     #   memory: 128Mi
 
   config:
-    developerLogging: "false"
-    sharedSubscriptionGroupName: "<your subscription name>"
-
+    RealtimeMap__SharedSubscriptionGroupName: "<your subscription name>"
+    ProtoActor__DeveloperLogging: "false"
 
 ingress:
   enabled: true

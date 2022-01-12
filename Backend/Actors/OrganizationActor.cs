@@ -1,13 +1,16 @@
 using Backend.Models;
+using Proto.OpenTelemetry;
 
 namespace Backend.Actors;
 
 public class OrganizationActor : OrganizationActorBase
 {
+    private readonly ILogger<OrganizationActor> _logger;
     private string _organizationName;
 
-    public OrganizationActor(IContext context) : base(context)
+    public OrganizationActor(IContext context, ILogger<OrganizationActor> logger) : base(context)
     {
+        _logger = logger;
     }
 
     public override Task OnStarted()
@@ -18,7 +21,8 @@ public class OrganizationActor : OrganizationActorBase
 
         _organizationName = organization.Name;
 
-        Console.WriteLine($"Started actor for organization: {organizationId} -- {_organizationName}");
+        _logger.LogInformation("Started actor for organization: {OrganizationId} - {OrganizationName}", organizationId,
+            _organizationName);
 
         foreach (var geofence in organization.Geofences)
         {
@@ -38,10 +42,11 @@ public class OrganizationActor : OrganizationActorBase
     private void CreateGeofenceActor(CircularGeofence circularGeofence)
     {
         var geofenceProps = Props.FromProducer(() => new GeofenceActor(
-            _organizationName,
-            circularGeofence,
-            Cluster
-        ));
+                _organizationName,
+                circularGeofence,
+                Cluster
+            ))
+            .WithTracing();
 
         Context.Spawn(geofenceProps);
     }

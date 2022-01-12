@@ -6,6 +6,7 @@ using Proto.Cluster.Kubernetes;
 using Proto.Cluster.Partition;
 using Proto.Cluster.Testing;
 using Proto.DependencyInjection;
+using Proto.OpenTelemetry;
 using Proto.Remote;
 using Proto.Remote.GrpcCore;
 
@@ -24,6 +25,7 @@ public static class ProtoActorExtensions
 
             var actorSystemConfig = ActorSystemConfig
                 .Setup()
+                .WithMetrics()
                 .WithDeadLetterThrottleCount(3)
                 .WithDeadLetterThrottleInterval(TimeSpan.FromSeconds(1));
 
@@ -34,17 +36,20 @@ public static class ProtoActorExtensions
                     .WithDeadLetterRequestLogging(true)
                     .WithDeveloperThreadPoolStatsLogging(true)
                     .WithDeveloperReceiveLogging(TimeSpan.FromSeconds(5));
+                // TODO: check WithConfigureProps to add tracing to each actor
             }
 
             var system = new ActorSystem(actorSystemConfig);
 
             var vehicleProps = Props
                 .FromProducer(() => new VehicleActorActor((c, _) =>
-                    ActivatorUtilities.CreateInstance<VehicleActor>(provider, c)));
+                    ActivatorUtilities.CreateInstance<VehicleActor>(provider, c)))
+                .WithTracing();
 
             var organizationProps = Props
                 .FromProducer(() => new OrganizationActorActor((c, _) =>
-                    ActivatorUtilities.CreateInstance<OrganizationActor>(provider, c)));
+                    ActivatorUtilities.CreateInstance<OrganizationActor>(provider, c)))
+                .WithTracing();
 
             var (remoteConfig, clusterProvider) = ConfigureClustering(config);
 
