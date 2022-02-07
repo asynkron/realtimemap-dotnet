@@ -36,7 +36,7 @@ spec:
               value: http://*:5000
             - name: ProtoActor__ClusterProvider
               value: Kubernetes
-            - name: ProtoActor__Host
+            - name: ProtoActor__AdvertisedHost
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP

@@ -85,10 +85,8 @@ public static class ProtoActorExtensions
         var kubernetes = new Kubernetes(KubernetesClientConfiguration.InClusterConfig());
         var clusterProvider = new KubernetesProvider(kubernetes);
 
-        var host = config["ProtoActor:Host"] ?? "127.0.0.1";
-
         var remoteConfig = GrpcNetRemoteConfig
-            .BindTo(host)
+            .BindToAllInterfaces(advertisedHost: config["ProtoActor:AdvertisedHost"])
             .WithProtoMessages(EmptyReflection.Descriptor)
             .WithProtoMessages(MessagesReflection.Descriptor)
             .WithLogLevelForDeserializationErrors(LogLevel.Critical)
