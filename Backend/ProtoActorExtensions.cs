@@ -8,7 +8,7 @@ using Proto.Cluster.Testing;
 using Proto.DependencyInjection;
 using Proto.OpenTelemetry;
 using Proto.Remote;
-using Proto.Remote.GrpcCore;
+using Proto.Remote.GrpcNet;
 
 namespace Backend;
 
@@ -72,7 +72,7 @@ public static class ProtoActorExtensions
         services.AddHostedService<ActorSystemHostedService>();
     }
 
-    static (GrpcCoreRemoteConfig, IClusterProvider) ConfigureClustering(IConfiguration config)
+    static (GrpcNetRemoteConfig, IClusterProvider) ConfigureClustering(IConfiguration config)
     {
         if (config["ProtoActor:ClusterProvider"] == "Kubernetes")
             return ConfigureForKubernetes(config);
@@ -80,14 +80,14 @@ public static class ProtoActorExtensions
         return ConfigureForLocalhost();
     }
     
-    static (GrpcCoreRemoteConfig, IClusterProvider) ConfigureForKubernetes(IConfiguration config)
+    static (GrpcNetRemoteConfig, IClusterProvider) ConfigureForKubernetes(IConfiguration config)
     {
         var kubernetes = new Kubernetes(KubernetesClientConfiguration.InClusterConfig());
         var clusterProvider = new KubernetesProvider(kubernetes);
 
         var host = config["ProtoActor:Host"] ?? "127.0.0.1";
 
-        var remoteConfig = GrpcCoreRemoteConfig
+        var remoteConfig = GrpcNetRemoteConfig
             .BindTo(host)
             .WithProtoMessages(EmptyReflection.Descriptor)
             .WithProtoMessages(MessagesReflection.Descriptor)
@@ -97,6 +97,6 @@ public static class ProtoActorExtensions
         return (remoteConfig, clusterProvider);
     }
 
-    static (GrpcCoreRemoteConfig, IClusterProvider) ConfigureForLocalhost() 
-        => (GrpcCoreRemoteConfig.BindToLocalhost(),  new TestProvider(new TestProviderOptions(), new InMemAgent()));
+    static (GrpcNetRemoteConfig, IClusterProvider) ConfigureForLocalhost() 
+        => (GrpcNetRemoteConfig.BindToLocalhost(),  new TestProvider(new TestProviderOptions(), new InMemAgent()));
 }
