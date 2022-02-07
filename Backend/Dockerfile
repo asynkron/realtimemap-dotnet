@@ -1,5 +1,5 @@
 # Stage 1 - Build
-FROM mcr.microsoft.com/dotnet/sdk:6.0.100 AS builder
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS builder
 
 WORKDIR /app/src
 
