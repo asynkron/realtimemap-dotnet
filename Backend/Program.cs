@@ -22,6 +22,7 @@ ConfigureMetrics(builder);
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddRealtimeMapProtoActor();
+builder.Services.AddProtoActorDashboard();
 builder.Services.AddHostedService<MqttIngress>();
 
 var app = builder.Build();
@@ -33,10 +34,15 @@ app.UseCors(b => b
     .AllowCredentials()
 );
 
+// for hosting the proto actor dashboard behind a reverse proxy on a subpath
+if (builder.Configuration["PathBase"] != null)
+    app.UsePathBase(builder.Configuration["PathBase"]);
+
 app.UseRouting();
 app.MapHub<EventsHub>("/events");
 app.MapOrganizationApi();
 app.MapTrailApi();
+app.MapProtoActorDashboard();
 
 try
 {

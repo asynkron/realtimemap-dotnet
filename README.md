@@ -28,7 +28,7 @@ Configure Mapbox:
 1. Copy a token from: main dashboard / access tokens / default public token.
 1. Paste the token in `Frontend\src\config.ts`.
 
-Start frontend:
+Start frontend (requires node.js 16.x):
 ```
 cd Frontend
 npm install
@@ -42,6 +42,8 @@ dotnet run
 ```
 
 The app is available on [localhost:8080](http://localhost:8080/).
+
+Also check out the proto.actor dashboard (alpha) by navigating to [localhost:5000](http://localhost:5000/).
 
 ### Kubernetes
 

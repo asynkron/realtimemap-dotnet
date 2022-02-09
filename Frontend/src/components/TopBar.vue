@@ -13,6 +13,12 @@
       </div>
     </div>
 
+    <div class = "ml-3">
+      <a v-bind:href="dashboardUrl" target="_blank">
+        <i class="pi pi-external-link mr-2"></i>Proto.Actor Dashboard (alpha)
+      </a>
+    </div>
+
     <div class="flex-1">
     </div>
 
@@ -34,8 +40,21 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import config from "@/config";
 
 export default defineComponent({
+  data() {
+    return {
+      dashboardUrl: "",
+    };
+  },
+
+  mounted() {
+    this.dashboardUrl = `${config.backendUrl}`;
+    if(!this.dashboardUrl.endsWith("/")) {
+      this.dashboardUrl += "/";
+    }
+  }
 });
 </script>
 

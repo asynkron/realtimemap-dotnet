@@ -1,6 +1,7 @@
 ﻿using Backend.Actors;
 using Google.Protobuf.WellKnownTypes;
 using k8s;
+using MudBlazor.Services;
 using Proto.Cluster.Cache;
 using Proto.Cluster.Kubernetes;
 using Proto.Cluster.Partition;
@@ -66,20 +67,34 @@ public static class ProtoActorExtensions
 
             return system;
         });
-        
+
         services.AddSingleton(provider => provider.GetRequiredService<ActorSystem>().Cluster());
-        
+
         services.AddHostedService<ActorSystemHostedService>();
+    }
+
+    public static void AddProtoActorDashboard(this IServiceCollection services)
+    {
+        services.AddServerSideBlazor();
+        services.AddRazorPages();
+        services.AddMudServices();
+    }
+
+    public static void MapProtoActorDashboard(this WebApplication app)
+    {
+        app.UseStaticFiles();
+        app.MapBlazorHub();
+        app.MapFallbackToPage("/_Host");
     }
 
     static (GrpcNetRemoteConfig, IClusterProvider) ConfigureClustering(IConfiguration config)
     {
         if (config["ProtoActor:ClusterProvider"] == "Kubernetes")
             return ConfigureForKubernetes(config);
-        
+
         return ConfigureForLocalhost();
     }
-    
+
     static (GrpcNetRemoteConfig, IClusterProvider) ConfigureForKubernetes(IConfiguration config)
     {
         var kubernetes = new Kubernetes(KubernetesClientConfiguration.InClusterConfig());
@@ -90,11 +105,14 @@ public static class ProtoActorExtensions
             .WithProtoMessages(EmptyReflection.Descriptor)
             .WithProtoMessages(MessagesReflection.Descriptor)
             .WithLogLevelForDeserializationErrors(LogLevel.Critical)
-            .WithRemoteDiagnostics(true);
+            .WithRemoteDiagnostics(true);// required by proto.actor dashboard
 
         return (remoteConfig, clusterProvider);
     }
 
-    static (GrpcNetRemoteConfig, IClusterProvider) ConfigureForLocalhost() 
-        => (GrpcNetRemoteConfig.BindToLocalhost(),  new TestProvider(new TestProviderOptions(), new InMemAgent()));
+    static (GrpcNetRemoteConfig, IClusterProvider) ConfigureForLocalhost()
+        => (GrpcNetRemoteConfig
+                .BindToLocalhost()
+                .WithRemoteDiagnostics(true), // required by proto.actor dashboard
+            new TestProvider(new TestProviderOptions(), new InMemAgent()));
 }
