@@ -8,7 +8,7 @@ frontend:
   image:
     repository: marcinbudny/protoactor-realtimemap-dotnet-frontend
     pullPolicy: IfNotPresent
-    tag: "0.3.0"
+    tag: "0.4.0"
   
   podAnnotations: {}
   
@@ -50,7 +50,7 @@ backend:
   image:
     repository: marcinbudny/protoactor-realtimemap-dotnet-backend
     pullPolicy: IfNotPresent
-    tag: "0.11.0"
+    tag: "0.12.0"
 
   podAnnotations: {}
 
@@ -79,6 +79,7 @@ backend:
   config:
     RealtimeMap__SharedSubscriptionGroupName: "<your subscription name>"
     ProtoActor__DeveloperLogging: "false"
+    PathBase: "/backend"
 
 ingress:
   enabled: true

@@ -19,6 +19,7 @@
         <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc8" />
         <PackageReference Include="Proto.Cluster" Version="0.27.1-alpha.0.6" />
         <PackageReference Include="Proto.Cluster.CodeGen" Version="0.27.1-alpha.0.6" />
+        <PackageReference Include="Proto.Cluster.Dashboard" Version="1.0.1" />
         <PackageReference Include="Proto.Cluster.Kubernetes" Version="0.27.1-alpha.0.6" />
         <PackageReference Include="Proto.Cluster.TestProvider" Version="0.27.1-alpha.0.6" />
         <PackageReference Include="Proto.OpenTelemetry" Version="0.27.1-alpha.0.6" />
@@ -29,9 +30,6 @@
 
     <ItemGroup>
         <ProtoGrain Include="Actors.proto" AdditionalImportDirs="." />
-    </ItemGroup>
-
-    <ItemGroup>
         <Protobuf Include="Messages.proto" AdditionalImportDirs="." />
     </ItemGroup>
 
