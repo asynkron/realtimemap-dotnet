@@ -22,6 +22,8 @@ public class SerilogMqttNetLogger : IMqttNetLogger
             .Write(MapLogLevel(logLevel), exception, message, parameters);
     }
 
+    public bool IsEnabled => true;
+
     private LogEventLevel MapLogLevel(MqttNetLogLevel logLevel)
         => logLevel switch
         {
