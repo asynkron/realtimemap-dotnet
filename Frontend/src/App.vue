@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen flex flex-column">
-    <Toast />
+    <Toast :autoZIndex="false" :baseZIndex="500" />
     <TopBar />
     <div class="flex-1 flex flex-row">
       <Map v-if="hubConnection" class="flex-1" :geofences="geofences" :hubConnection="hubConnection" />

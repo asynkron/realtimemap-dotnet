@@ -52,7 +52,7 @@ export const addVehicleTrailLayer = async (map: mapboxgl.Map) => {
 
   async function drawCurrentlySelectedVehicleTrail() {
     if (currentlySelectedVehicleId) {
-      drawTrail(currentlySelectedVehicleId);
+      await drawTrail(currentlySelectedVehicleId);
     }
   }
 

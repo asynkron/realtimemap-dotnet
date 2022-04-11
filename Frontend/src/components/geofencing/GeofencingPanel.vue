@@ -79,7 +79,7 @@ export default defineComponent({
   },
 
   methods: {
-    
+
     async fetchData() {
       this.organizations = await browseOrganizations();
     },
@@ -118,7 +118,7 @@ export default defineComponent({
       if (notification.orgId === this.selectedOrganization?.id) {
 
         const zone = this.details?.geofences.find(g => g.name === notification.zoneName);
-        
+
         if(zone) {
 
           if(notification.event === "Enter") {
@@ -131,7 +131,7 @@ export default defineComponent({
               zone.vehiclesInZone.splice(index, 1);
             }
           }
-        
+
         }
 
       }

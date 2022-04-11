@@ -19,7 +19,7 @@
         <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc9.1" />
         <PackageReference Include="Proto.Cluster" Version="0.29.0" />
         <PackageReference Include="Proto.Cluster.CodeGen" Version="0.29.0" />
-<!--        <PackageReference Include="Proto.Cluster.Dashboard" Version="1.0.1" />-->
+        <PackageReference Include="Proto.Cluster.Dashboard" Version="0.29.0" />
         <PackageReference Include="Proto.Cluster.Kubernetes" Version="0.29.0" />
         <PackageReference Include="Proto.Cluster.TestProvider" Version="0.29.0" />
         <PackageReference Include="Proto.OpenTelemetry" Version="0.29.0" />

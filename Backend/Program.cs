@@ -42,7 +42,7 @@ app.UseRouting();
 app.MapHub<EventsHub>("/events");
 app.MapOrganizationApi();
 app.MapTrailApi();
-// app.MapProtoActorDashboard();
+app.MapProtoActorDashboard();
 
 try
 {
