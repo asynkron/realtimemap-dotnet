@@ -1,8 +1,8 @@
 <template>
 
-  <div class="flex flex-row ">
+  <div class="flex flex-row p-3">
 
-    <div class="flex-1 ml-3 mt-3 scrollable-wrapper w-12rem sm:w-20rem md:w-25rem">
+    <div class="flex-1 scrollable-wrapper w-12rem sm:w-18rem md:w-24rem">
       <div class="scrollable">
         <h2 class="mt-0 mb-0">
           Geofencing
