@@ -1,25 +1,27 @@
 <template>
 
-  <div class="flex flex-row">
+  <div class="flex flex-row ">
 
-    <div class="flex-1 m-3">
-      <h2 class="mt-0 mb-0">
-        Geofencing
-      </h2>
-      <div class="mt-6">
-        <div class="p-field">
-        <span class="p-float-label">
-          <Dropdown id="organization-select" v-model="selectedOrganization" :options="organizations" optionLabel="name" />
-          <label for="organization-select">Select an organization</label>
-        </span>
+    <div class="flex-1 ml-3 mt-3 scrollable-wrapper w-12rem sm:w-20rem md:w-25rem">
+      <div class="scrollable">
+        <h2 class="mt-0 mb-0">
+          Geofencing
+        </h2>
+        <div class="mt-6">
+          <div class="p-field">
+          <span class="p-float-label">
+            <Dropdown id="organization-select" v-model="selectedOrganization" :options="organizations" optionLabel="name" />
+            <label for="organization-select">Organization</label>
+          </span>
+          </div>
         </div>
-      </div>
-      <div class="mt-5" v-if="details">
-        <OrganizationDetails :details="details" />
+        <div class="mt-5" v-if="details">
+          <OrganizationDetails :details="details" />
+        </div>
       </div>
     </div>
 
-    <div class="notifications-placeholder" />
+    <div class="notifications-placeholder hidden xl:flex xl:w-26rem" />
   </div>
 
 </template>
@@ -143,12 +145,22 @@ export default defineComponent({
 
 <style scoped>
 
-  .notifications-placeholder {
-    width: 27rem;
-  }
-
   .p-dropdown {
     width: 100%;
+  }
+
+  .scrollable-wrapper {
+    position: relative;
+  }
+
+  .scrollable {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    padding-right: 1rem;
+    overflow-y: auto;
   }
 
 </style>

@@ -13,28 +13,28 @@
       </div>
     </div>
 
-    <div class = "ml-3">
+    <div class="ml-3 hidden md:block">
       <a v-bind:href="dashboardUrl" target="_blank">
-        <i class="pi pi-external-link mr-2"></i>Proto.Actor Dashboard (alpha)
+        <i class="pi pi-external-link mr-2"></i>Proto.Actor Dashboard
       </a>
     </div>
 
     <div class="flex-1">
     </div>
 
-    <a href="https://www.skyrise.tech" target="_blank" rel="noopener noreferrer" class="h-full px-3 block flex align-items-center">
+    <a href="https://www.skyrise.tech" target="_blank" rel="noopener noreferrer" class="h-full px-3 hidden md:flex align-items-center">
       <img src="../assets/skyrise.svg" class="logo" />
     </a>
 
-    <a href="https://proto.actor" target="_blank" rel="noopener noreferrer" class="h-full px-3 block flex align-items-center">
+    <a href="https://proto.actor" target="_blank" rel="noopener noreferrer" class="h-full px-3 hidden md:flex align-items-center">
       <img src="../assets/protoactor.svg" class="logo" />
     </a>
 
-    <a href="https://github.com/AsynkronIT/realtimemap" target="_blank" rel="noopener noreferrer" class="h-full px-3 block">
+    <a href="https://github.com/AsynkronIT/realtimemap" target="_blank" rel="noopener noreferrer" class="h-full px-3 hidden md:block">
       <i class="pi pi-github text-3xl"></i>
     </a>
 
-    <i class="pi pi-info-circle text-3xl" @click="showTutorial"></i>
+    <i class="pi pi-info-circle text-3xl block" @click="showTutorial"></i>
 
   </div>
 

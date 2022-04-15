@@ -2,9 +2,9 @@
   <div class="min-h-screen flex flex-column">
     <Toast :autoZIndex="false" :baseZIndex="500" />
     <TopBar />
-    <div class="flex-1 flex flex-row">
-      <Map v-if="hubConnection" class="flex-1" :geofences="geofences" :hubConnection="hubConnection" />
-      <GeofencingPanel class="flex-1" v-if="hubConnection" :hubConnection="hubConnection" @geofences-updated="geofences = $event" />
+    <div class="flex flex-row flex-1">
+        <Map v-if="hubConnection" class="flex-1" :geofences="geofences" :hubConnection="hubConnection" />
+        <GeofencingPanel class="flex-0" v-if="hubConnection" :hubConnection="hubConnection" @geofences-updated="geofences = $event" />
     </div>
   </div>
 </template>
