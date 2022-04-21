@@ -22,8 +22,8 @@
     <div class="flex-1">
     </div>
 
-    <a href="https://www.skyrise.tech" target="_blank" rel="noopener noreferrer" class="h-full px-3 hidden md:flex align-items-center">
-      <img src="../assets/skyrise.svg" class="logo" />
+    <a href="https://www.etteplan.com/" target="_blank" rel="noopener noreferrer" class="h-full px-3 hidden md:flex align-items-center">
+      <img src="../assets/etteplan.svg" class="logo" />
     </a>
 
     <a href="https://proto.actor" target="_blank" rel="noopener noreferrer" class="h-full px-3 hidden md:flex align-items-center">
@@ -39,10 +39,10 @@
   </div>
 
   <Dialog :modal="true" :showHeader="true" header="Welcome!" v-model:visible="tutorialVisible" :style="{width: '75vw'}" :breakpoints="{'1000px': '90vw', '700px': '100vw'}" @hide="onTutorialHidden">
-    <p>Welcome to the Proto.actor realtime map showcase. This technology demo shows how proto.actor actor framework can be used to track the location of assets in real time, and how to notify users when certain conditions are observed.</p>
+    <p>Welcome to the Proto.Actor realtime map showcase. This technology demo shows how Proto.Actor actor framework can be used to track the location of assets in real time, and how to notify users when certain conditions are observed.</p>
     <p class="mobile-warning" v-if="mobileNoteVisible">NOTE: For best user experience, open this website in a desktop browser!</p>
     <p>We use data from <a target="_blank" href="https://digitransit.fi/en/developers/apis/4-realtime-api/vehicle-positions/">Helsinki Region Transport</a> to get real-time information about position, heading and status of the public transport vehicles in the city of Helsinki. The data is published under <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/deed.en">Creative Commons BY 4.0 International license</a> © Helsinki Region Transport {{ year }}</p>
-    <p>The showcase was built in cooperation with <a href="https://skyrise.tech">Skyrise.tech</a>.</p>
+    <p>The showcase was built in cooperation with <a href="https://www.etteplan.com" target="_blank">Etteplan</a>.</p>
     <h3>Navigation</h3>
     <p>Zoom out to see an overview of the whole city or zoom in to see the details.</p>
     <video autoplay muted loop>
@@ -65,9 +65,9 @@
     </video>
     <h3>More information</h3>
     <ul>
-      <li><a href="https://github.com/AsynkronIT/realtimemap">Github page</a></li>
-      <li><a href="https://proto.actor">Proto.actor framework</a></li>
-      <li><a href="https://skyrise.tech">Skyrise.tech</a></li>
+      <li><a href="https://github.com/AsynkronIT/realtimemap" target="_blank">Github page</a></li>
+      <li><a href="https://proto.actor" target="_blank">Proto.Actor framework</a></li>
+      <li><a href="https://www.etteplan.com" target="_blank">Etteplan</a></li>
     </ul>
   </Dialog>
 
