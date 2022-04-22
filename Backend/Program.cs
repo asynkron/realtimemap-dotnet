@@ -96,7 +96,7 @@ static void ConfigureMetrics(WebApplicationBuilder builder) =>
             .AddOtlpExporter(opt =>
             {
                 opt.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]);
-                opt.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds =
+                opt.BatchExportProcessorOptions.ScheduledDelayMilliseconds =
                     builder.Configuration.GetValue<int>("Otlp:MetricsIntervalMilliseconds");
             })
     );

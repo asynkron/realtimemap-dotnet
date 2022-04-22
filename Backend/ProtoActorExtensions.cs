@@ -1,8 +1,8 @@
 ﻿using Backend.Actors;
 using Google.Protobuf.WellKnownTypes;
-using k8s;
 using MudBlazor.Services;
 using Proto.Cluster.Cache;
+using Proto.Cluster.Dashboard;
 using Proto.Cluster.Kubernetes;
 using Proto.Cluster.Partition;
 using Proto.Cluster.Testing;
@@ -78,6 +78,7 @@ public static class ProtoActorExtensions
         services.AddServerSideBlazor();
         services.AddRazorPages();
         services.AddMudServices();
+        services.AddSingleton(new DashboardSettings());
     }
 
     public static void MapProtoActorDashboard(this WebApplication app)
@@ -97,8 +98,7 @@ public static class ProtoActorExtensions
 
     static (GrpcNetRemoteConfig, IClusterProvider) ConfigureForKubernetes(IConfiguration config)
     {
-        var kubernetes = new Kubernetes(KubernetesClientConfiguration.InClusterConfig());
-        var clusterProvider = new KubernetesProvider(kubernetes);
+        var clusterProvider = new KubernetesProvider();
 
         var remoteConfig = GrpcNetRemoteConfig
             .BindToAllInterfaces(advertisedHost: config["ProtoActor:AdvertisedHost"])

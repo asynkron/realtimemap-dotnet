@@ -13,7 +13,7 @@ import Dropdown from 'primevue/dropdown'
 import Tag from 'primevue/tag'
 import Panel from 'primevue/panel';
 import Toast from 'primevue/toast';
-
+import Dialog from 'primevue/dialog';
 
 const app = createApp(App);
 
@@ -24,5 +24,6 @@ app.component('Dropdown', Dropdown);
 app.component('Tag', Tag);
 app.component('Panel', Panel);
 app.component('Toast', Toast);
+app.component('Dialog', Dialog)
 
 app.mount('#app');

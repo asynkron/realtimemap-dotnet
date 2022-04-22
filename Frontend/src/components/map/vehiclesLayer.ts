@@ -2,7 +2,7 @@ import { VehicleStates, mapVehiclesToGeoJson } from "./vehicleStates";
 import { getBoundsWithMargin } from './boundsWithMargin';
 import { trySetGeoJsonSource } from "./mapUtils";
 
-export const showMarkerLevel = 12;
+export const showMarkerLevel = 11;
 
 const vehicleSourceId = "vehicles";
 export const vehicleLayerId = "vehicle-layer";
@@ -32,17 +32,18 @@ export const addVehiclesLayer = (map: mapboxgl.Map, vehicleStates: VehicleStates
 
   map.loadImage('/vehicle-moving.png', (error, image) => {
     if (error) throw error;
-    map.addImage('moving', image);
+    if(image)
+      map.addImage('moving', image);
   });
 
   map.loadImage('/vehicle-doors-open.png', (error, image) => {
     if (error) throw error;
-    map.addImage('doors-open', image);
+    if(image)
+      map.addImage('doors-open', image);
   });
 
   setInterval(
-    () => updateVehicleLayers(map, vehicleStates),
-    1000
+    () => updateVehicleLayers(map, vehicleStates), 900
   );
 
 }

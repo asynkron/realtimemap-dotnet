@@ -1,7 +1,7 @@
 import { GetTrail } from "@/components/map/api-trail";
 import mapboxgl from "mapbox-gl";
 import { trySetGeoJsonSource } from "./mapUtils";
-import { vehicleLayerId } from "./vehiclesLayer";
+import {showMarkerLevel, vehicleLayerId} from "./vehiclesLayer";
 
 const vehicleTrailSourceId = "vehicle-trails";
 
@@ -22,6 +22,7 @@ export const addVehicleTrailLayer = async (map: mapboxgl.Map) => {
   map.addLayer({
     id: 'vehicle-trail-layer',
     type: 'line',
+    minzoom: showMarkerLevel,
     source: vehicleTrailSourceId,
     layout: {
       'line-join': 'round',
@@ -52,7 +53,7 @@ export const addVehicleTrailLayer = async (map: mapboxgl.Map) => {
 
   async function drawCurrentlySelectedVehicleTrail() {
     if (currentlySelectedVehicleId) {
-      drawTrail(currentlySelectedVehicleId);
+      await drawTrail(currentlySelectedVehicleId);
     }
   }
 

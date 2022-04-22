@@ -28,7 +28,7 @@ Configure Mapbox:
 1. Copy a token from: main dashboard / access tokens / default public token.
 1. Paste the token in `Frontend\src\config.ts`.
 
-Start frontend (requires node.js 16.x):
+Start frontend (requires node.js 17.x):
 ```
 cd Frontend
 npm install

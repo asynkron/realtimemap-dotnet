@@ -8,7 +8,7 @@ frontend:
   image:
     repository: marcinbudny/protoactor-realtimemap-dotnet-frontend
     pullPolicy: IfNotPresent
-    tag: "0.4.0"
+    tag: "0.6.0"
   
   podAnnotations: {}
   
@@ -50,7 +50,7 @@ backend:
   image:
     repository: marcinbudny/protoactor-realtimemap-dotnet-backend
     pullPolicy: IfNotPresent
-    tag: "0.12.0"
+    tag: "0.13.0"
 
   podAnnotations: {}
 

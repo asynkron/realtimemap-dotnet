@@ -55,7 +55,7 @@ export const addVehicleClustersLayer = (map: mapboxgl.Map, vehicleStates: Vehicl
 
   setInterval(
     () => updateClusterLayers(map, vehicleStates),
-    5000
+    2000
   );
 
 }
