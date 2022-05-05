@@ -2,9 +2,6 @@ import { PositionDto } from '@/hub';
 import { getBoundsWithMargin } from './boundsWithMargin';
 import { GeoJSONSourceData } from "./mapUtils";
 
-// const stepsInAnimation = 10;
-
-// this must have this shape to be compatible with mapbox
 export interface VehiclePosition {
   lat: number;
   lng: number;
@@ -18,7 +15,6 @@ export interface VehicleState {
   currentPosition: VehiclePosition;
   speed: number;
   nextPosition: VehiclePosition;
-  shouldAnimate: boolean;
   icon: string;
 }
 
@@ -40,7 +36,6 @@ function createVehicleFromState(e: PositionDto): VehicleState {
     nextPosition: { lng: e.longitude, lat: e.latitude, heading: e.heading },
     currentPosition: { lng: e.longitude, lat: e.latitude, heading: e.heading },
     delta: { lat: 0, lng: 0, heading: 0 },
-    shouldAnimate: false,
     icon: '',
   };
 }
@@ -57,52 +52,9 @@ function updateVehicleFromEvent(
     heading: positionDto.heading
   };
 
-  // console.log(positionDto.vehicleId)
-  // console.log(vehicleState.nextPosition);
-  // console.log(positionDto);
-
-  // const lng = positionDto.longitude - vehicleState.nextPosition.lng;
-  // const lat = positionDto.latitude - vehicleState.nextPosition.lat;
-  // let heading = positionDto.heading - vehicleState.nextPosition.heading;
-
-  // if (lng != 0) {
-  //   console.log(lng, lat);
-  // }
-
-  // //prevent full rotations when next and current course cross between 0 and 360
-  // if (heading > 180) {
-  //   heading -= 360;
-  // }
-
-  // if (heading < -180) {
-  //   heading += 360;
-  // }
-
-  // vehicleState.steps = stepsInAnimation;
-  // vehicleState.delta = {
-  //   lng: lng / stepsInAnimation,
-  //   lat: lat / stepsInAnimation,
-  //   heading: heading / stepsInAnimation,
-  // };
-  // //console.log(vehicleState.delta );
-  // vehicleState.currentPosition = vehicleState.nextPosition;
-  // vehicleState.nextPosition = {
-  //   lng: positionDto.longitude,
-  //   lat: positionDto.latitude,
-  //   heading: positionDto.heading,
-  // };
-  // vehicleState.shouldAnimate =
-  //   vehicleState.delta.lat != 0 ||
-  //   vehicleState.delta.lng != 0 ||
-  //   vehicleState.delta.heading != 0;
-
   if (positionDto.doorsOpen) {
-    //console.log("doors open...")
     vehicleState.icon = 'doors-open';
-  } else if (
-    (positionDto.speed != undefined && positionDto.speed > 0) ||
-    vehicleState.shouldAnimate
-  ) {
+  } else if (positionDto.speed != undefined && positionDto.speed > 0) {
     vehicleState.icon = 'moving';
   } else {
     // todo: use better icon

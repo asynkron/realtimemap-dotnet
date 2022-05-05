@@ -64,7 +64,7 @@ export default defineComponent({
       addVehicleTrailLayer(this.map);
       addGeofencesLayer(this.map);
 
-      addVehicleDetailsPopup(this.map); 
+      addVehicleDetailsPopup(this.map);
 
       if(this.hubConnection !== undefined)
         handleViewportUpdates(this.map, this.hubConnection);
@@ -99,7 +99,6 @@ body {
 
 #map {
   position: relative;
-  /* top: 20px; */
   height: 100%;
   width: 100%;
 }
