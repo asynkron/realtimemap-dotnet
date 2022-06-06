@@ -7,7 +7,7 @@
 
     <ItemGroup>
         <PackageReference Include="GeoCoordinate.NetCore" Version="1.0.0.1" />
-        <PackageReference Include="Grpc.Tools" Version="2.45.0">
+        <PackageReference Include="Grpc.Tools" Version="2.46.3">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -17,13 +17,13 @@
         <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.2.0-rc4" />
         <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc9.1" />
         <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc9.1" />
-        <PackageReference Include="Proto.Cluster" Version="0.29.0" />
-        <PackageReference Include="Proto.Cluster.CodeGen" Version="0.29.0" />
-        <PackageReference Include="Proto.Cluster.Dashboard" Version="0.29.0" />
-        <PackageReference Include="Proto.Cluster.Kubernetes" Version="0.29.0" />
-        <PackageReference Include="Proto.Cluster.TestProvider" Version="0.29.0" />
-        <PackageReference Include="Proto.OpenTelemetry" Version="0.29.0" />
-        <PackageReference Include="Proto.Remote" Version="0.29.0" />
+        <PackageReference Include="Proto.Cluster" Version="0.33.0" />
+        <PackageReference Include="Proto.Cluster.CodeGen" Version="0.33.0" />
+        <PackageReference Include="Proto.Cluster.Dashboard" Version="0.33.0" />
+        <PackageReference Include="Proto.Cluster.Kubernetes" Version="0.33.0" />
+        <PackageReference Include="Proto.Cluster.TestProvider" Version="0.33.0" />
+        <PackageReference Include="Proto.OpenTelemetry" Version="0.33.0" />
+        <PackageReference Include="Proto.Remote" Version="0.33.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
         <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="7.1.1" />
     </ItemGroup>
