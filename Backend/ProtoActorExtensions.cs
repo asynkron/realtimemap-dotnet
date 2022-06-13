@@ -10,6 +10,7 @@ using Proto.DependencyInjection;
 using Proto.OpenTelemetry;
 using Proto.Remote;
 using Proto.Remote.GrpcNet;
+using Proto.Remote.Healthchecks;
 
 namespace Backend;
 
@@ -71,6 +72,10 @@ public static class ProtoActorExtensions
         services.AddSingleton(provider => provider.GetRequiredService<ActorSystem>().Cluster());
 
         services.AddHostedService<ActorSystemHostedService>();
+
+        services
+            .AddHealthChecks()
+            .AddCheck<ActorSystemHealthCheck>("actor-system-health");
     }
 
     public static void AddProtoActorDashboard(this IServiceCollection services)

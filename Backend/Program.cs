@@ -38,6 +38,7 @@ app.UseCors(b => b
 if (builder.Configuration["PathBase"] != null)
     app.UsePathBase(builder.Configuration["PathBase"]);
 
+app.UseHealthChecks("/healthz");
 app.UseRouting();
 app.MapHub<EventsHub>("/events");
 app.MapOrganizationApi();
