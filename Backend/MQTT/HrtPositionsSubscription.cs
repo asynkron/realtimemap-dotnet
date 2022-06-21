@@ -79,7 +79,7 @@ public class HrtPositionsSubscription : IDisposable
 
                     var hrtPositionUpdate = HrtPositionUpdate.ParseFromMqttMessage(args.ApplicationMessage);
 
-                    if (hrtPositionUpdate.HasValidPosition)
+                    if (hrtPositionUpdate != null)
                         await onPositionUpdate(hrtPositionUpdate);
                 }
                 catch (Exception e)

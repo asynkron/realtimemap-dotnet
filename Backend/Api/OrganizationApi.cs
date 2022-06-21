@@ -1,4 +1,5 @@
-﻿using Backend.DTO;
+﻿using System.Net;
+using Backend.DTO;
 using Backend.Models;
 using Proto.OpenTelemetry;
 
@@ -12,11 +13,7 @@ public static class OrganizationApi
         {
             var results = Organizations.All
                 .Where(organization => organization.Geofences.Any())
-                .Select(organization => new OrganizationDto
-                {
-                    Id = organization.Id,
-                    Name = organization.Name
-                })
+                .Select(organization => new OrganizationDto(organization.Id, organization.Name))
                 .OrderBy(organization => organization.Name)
                 .ToList();
 
@@ -31,29 +28,29 @@ public static class OrganizationApi
                 var organizationActorClient = cluster.GetOrganizationActor(id);
 
                 var geofences = await organizationActorClient.GetGeofences(
-                    new GetGeofencesRequest { OrgId = id },
+                    new GetGeofencesRequest {OrgId = id},
                     cluster.System.Root.WithTracing(),
                     CancellationToken.None
                 );
 
-                var results = new OrganizationDetailsDto
-                {
-                    Id = organization.Id,
-                    Name = organization.Name,
-                    Geofences = geofences.Geofences
-                        .Select(geofence => new GeofenceDto
-                        {
-                            Name = geofence.Name,
-                            RadiusInMeters = geofence.RadiusInMeters,
-                            Longitude = geofence.Longitude,
-                            Latitude = geofence.Latitude,
-                            VehiclesInZone = geofence.VehiclesInZone
+                if (geofences == null) return Results.StatusCode((int) HttpStatusCode.ServiceUnavailable); // timeout
+
+                var results = new OrganizationDetailsDto(
+                    organization.Id,
+                    organization.Name,
+                    geofences.Geofences
+                        .Select(geofence => new GeofenceDto(
+                            geofence.Name,
+                            geofence.Latitude,
+                            geofence.Longitude,
+                            geofence.RadiusInMeters,
+                            geofence.VehiclesInZone
                                 .OrderBy(zone => zone)
                                 .ToArray()
-                        })
+                        ))
                         .OrderBy(geofence => geofence.Name)
                         .ToList()
-                };
+                );
 
                 return Results.Ok(results);
             }

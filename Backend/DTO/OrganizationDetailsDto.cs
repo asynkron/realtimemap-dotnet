@@ -1,6 +1,7 @@
 ﻿namespace Backend.DTO;
 
-public class OrganizationDetailsDto : OrganizationDto
-{
-    public IReadOnlyList<GeofenceDto> Geofences { get; set; }
-}
+public record OrganizationDetailsDto(
+    string Id,
+    string Name,
+    IReadOnlyList<GeofenceDto> Geofences
+) : OrganizationDto(Id, Name);

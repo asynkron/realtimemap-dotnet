@@ -9,7 +9,7 @@ public class MqttIngress : IHostedService
     private readonly Cluster _cluster;
     private readonly IRootContext _senderContext;
     private readonly ILoggerFactory _loggerFactory;
-    private HrtPositionsSubscription _hrtPositionsSubscription;
+    private HrtPositionsSubscription? _hrtPositionsSubscription;
 
     public MqttIngress(IConfiguration configuration, Cluster cluster, ILoggerFactory loggerFactory)
     {
@@ -44,13 +44,13 @@ public class MqttIngress : IHostedService
         var position = new Position
         {
             OrgId = hrtPositionUpdate.OperatorId,
-            Longitude = hrtPositionUpdate.VehiclePosition.Long.GetValueOrDefault(),
-            Latitude = hrtPositionUpdate.VehiclePosition.Lat.GetValueOrDefault(),
+            Longitude = hrtPositionUpdate.Payload.Long.GetValueOrDefault(),
+            Latitude = hrtPositionUpdate.Payload.Lat.GetValueOrDefault(),
             VehicleId = vehicleId,
-            Heading = (int)hrtPositionUpdate.VehiclePosition.Hdg.GetValueOrDefault(),
-            DoorsOpen = hrtPositionUpdate.VehiclePosition.Drst == 1,
-            Timestamp = hrtPositionUpdate.VehiclePosition.Tst.GetValueOrDefault().ToUnixTimeMilliseconds(),
-            Speed = hrtPositionUpdate.VehiclePosition.Spd.GetValueOrDefault()
+            Heading = (int)hrtPositionUpdate.Payload.Hdg.GetValueOrDefault(),
+            DoorsOpen = hrtPositionUpdate.Payload.Drst == 1,
+            Timestamp = hrtPositionUpdate.Payload.Tst.GetValueOrDefault().ToUnixTimeMilliseconds(),
+            Speed = hrtPositionUpdate.Payload.Spd.GetValueOrDefault()
         };
 
         await _cluster

@@ -6,7 +6,7 @@ namespace Backend.Actors;
 public class OrganizationActor : OrganizationActorBase
 {
     private readonly ILogger<OrganizationActor> _logger;
-    private string _organizationName;
+    private string? _organizationName;
 
     public OrganizationActor(IContext context, ILogger<OrganizationActor> logger) : base(context)
     {
@@ -15,10 +15,8 @@ public class OrganizationActor : OrganizationActorBase
 
     public override Task OnStarted()
     {
-        var organizationId = Context.Self.Id.Substring("partition-activator/".Length, 4);
-
+        var organizationId = Context.Get<ClusterIdentity>()!.Identity;
         var organization = GetOrganization(organizationId);
-
         _organizationName = organization.Name;
 
         _logger.LogInformation("Started actor for organization: {OrganizationId} - {OrganizationName}", organizationId,
@@ -42,7 +40,7 @@ public class OrganizationActor : OrganizationActorBase
     private void CreateGeofenceActor(CircularGeofence circularGeofence)
     {
         var geofenceProps = Props.FromProducer(() => new GeofenceActor(
-                _organizationName,
+                _organizationName!,
                 circularGeofence,
                 Cluster
             ))

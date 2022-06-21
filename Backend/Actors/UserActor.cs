@@ -12,8 +12,8 @@ public class UserActor : IActor
     private readonly SendNotification _sendNotification;
     private readonly Viewport _viewport;
     private readonly List<Position> _positions = new(PositionBatchSize);
-    private EventStreamSubscription<object> _notificationSubscription;
-    private EventStreamSubscription<object> _positionSubscription;
+    private EventStreamSubscription<object>? _notificationSubscription;
+    private EventStreamSubscription<object>? _positionSubscription;
 
     public UserActor(SendPositionBatch sendPositionBatch, SendNotification sendNotification)
     {
@@ -87,5 +87,5 @@ public class UserActor : IActor
 
 public class UpdateViewport
 {
-    public Viewport Viewport { get; set; }
+    public Viewport? Viewport { get; init; }
 }

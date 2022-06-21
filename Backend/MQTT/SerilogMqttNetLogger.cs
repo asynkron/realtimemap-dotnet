@@ -8,7 +8,7 @@ namespace Backend.MQTT;
 public class SerilogMqttNetLogger : IMqttNetLogger
 {
     private readonly string _source;
-    public SerilogMqttNetLogger(string source = null) => _source = source ?? "MQTT";
+    public SerilogMqttNetLogger(string? source = null) => _source = source ?? "MQTT";
 
     public void Publish(
         MqttNetLogLevel logLevel,

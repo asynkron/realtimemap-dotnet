@@ -27,7 +27,7 @@ public class EventsHub : Hub
         _eventsHubContext = eventsHubContext;
     }
 
-    private PID UserActorPid
+    private PID? UserActorPid
     {
         get => Context.Items["user-pid"] as PID;
         set => Context.Items["user-pid"] = value;
@@ -37,7 +37,7 @@ public class EventsHub : Hub
     {
         _logger.LogInformation("Client {ClientId} connected", Context.ConnectionId);
         RealtimeMapMetrics.SignalRConnections.ChangeBy(1);
-        
+
         var connectionId = Context.ConnectionId;
         UserActorPid = _cluster.System.Root.Spawn(
             Props.FromProducer(() => new UserActor(
@@ -62,14 +62,17 @@ public class EventsHub : Hub
         _logger.LogInformation("Client {ClientId} setting viewport to ({SWLat}, {SWLng}),({NELat}, {NELng})",
             Context.ConnectionId, swLat, swLng, neLat, neLng);
 
-        _senderContext.Send(UserActorPid, new UpdateViewport
+        if (UserActorPid != null)
         {
-            Viewport = new Viewport
+            _senderContext.Send(UserActorPid, new UpdateViewport
             {
-                SouthWest = new GeoPoint(swLng, swLat),
-                NorthEast = new GeoPoint(neLng, neLat)
-            }
-        });
+                Viewport = new Viewport
+                {
+                    SouthWest = new GeoPoint(swLng, swLat),
+                    NorthEast = new GeoPoint(neLng, neLat)
+                }
+            });
+        }
 
         return Task.CompletedTask;
     }
@@ -84,12 +87,10 @@ public class EventsHub : Hub
         try
         {
             await _eventsHubContext.Clients.Client(connectionId).SendAsync("positions",
-                new PositionsDto
-                {
-                    Positions = batch.Positions
-                        .Select(PositionDto.MapFrom)
-                        .ToArray()
-                });
+                new PositionsDto(batch.Positions
+                    .Select(PositionDto.MapFrom)
+                    .ToArray()
+                ));
         }
         catch (Exception e)
         {
@@ -119,11 +120,12 @@ public class EventsHub : Hub
         }
     }
 
-    public override async Task OnDisconnectedAsync(Exception exception)
+    public override async Task OnDisconnectedAsync(Exception? _)
     {
         _logger.LogDebug("Client {ClientId} disconnected", Context.ConnectionId);
         RealtimeMapMetrics.SignalRConnections.ChangeBy(-1);
 
-        await _cluster.System.Root.StopAsync(UserActorPid);
+        if(UserActorPid != null)
+            await _cluster.System.Root.StopAsync(UserActorPid);
     }
 }

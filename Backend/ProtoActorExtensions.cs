@@ -110,7 +110,7 @@ public static class ProtoActorExtensions
             .WithProtoMessages(EmptyReflection.Descriptor)
             .WithProtoMessages(MessagesReflection.Descriptor)
             .WithLogLevelForDeserializationErrors(LogLevel.Critical)
-            .WithRemoteDiagnostics(true);// required by proto.actor dashboard
+            .WithRemoteDiagnostics(true); // required by proto.actor dashboard
 
         return (remoteConfig, clusterProvider);
     }

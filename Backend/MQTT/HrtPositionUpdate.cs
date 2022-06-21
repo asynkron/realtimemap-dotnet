@@ -4,23 +4,26 @@ using Newtonsoft.Json;
 
 namespace Backend.MQTT;
 
-public record HrtPositionUpdate(string OperatorId, string VehicleNumber, Payload VehiclePosition)
+public record HrtPositionUpdate(string OperatorId, string VehicleNumber, Payload Payload)
 {
-    public static HrtPositionUpdate ParseFromMqttMessage(MqttApplicationMessage mqttApplicationMessage)
+    public static HrtPositionUpdate? ParseFromMqttMessage(MqttApplicationMessage mqttApplicationMessage)
     {
         var topic = HrtPositionUpdateTopic.FromMqttMessage(mqttApplicationMessage);
 
-        var payload = JsonConvert.DeserializeObject<Root>(
+        var msg = JsonConvert.DeserializeObject<Root>(
             Encoding.UTF8.GetString(mqttApplicationMessage.Payload)
         );
             
-        var vehiclePosition = payload?.VehiclePosition;
+        var payload = msg?.VehiclePosition ?? msg?.DoorsOpen ?? msg?.DoorsClosed;
 
-        return new HrtPositionUpdate(
-            OperatorId: topic.OperatorId,
-            VehicleNumber: topic.VehicleNumber,
-            VehiclePosition: vehiclePosition);
+        if (payload?.HasValidPosition == true)
+        {
+            return new HrtPositionUpdate(
+                OperatorId: topic.OperatorId,
+                VehicleNumber: topic.VehicleNumber,
+                Payload: payload);
+        }
+
+        return null;
     }
-
-    public bool HasValidPosition => VehiclePosition != null && VehiclePosition.HasValidPosition;
 }

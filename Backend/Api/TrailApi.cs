@@ -1,4 +1,5 @@
-﻿using Backend.DTO;
+﻿using System.Net;
+using Backend.DTO;
 using Proto.OpenTelemetry;
 
 namespace Backend.Api;
@@ -16,15 +17,15 @@ public static class TrailApi
                     cluster.System.Root.WithTracing(),
                     CancellationToken.None);
 
+            if (positionsHistory == null) return Results.StatusCode((int)HttpStatusCode.ServiceUnavailable); // timeout
+
             var positions = positionsHistory.Positions
                 .Select(PositionDto.MapFrom)
                 .ToArray();
 
-            var result = new PositionsDto
-            {
-                Positions = positions
-            };
+            var result = new PositionsDto(positions);
 
+            
             return Results.Ok(result);
         });
     }
