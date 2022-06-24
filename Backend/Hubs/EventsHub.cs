@@ -3,9 +3,11 @@ using Backend.Actors;
 using Backend.DTO;
 using Backend.Infrastructure.Metrics;
 using Backend.Infrastructure.Tracing;
+using Backend.Models;
 using Microsoft.AspNetCore.SignalR;
 using OpenTelemetry.Trace;
 using Proto.OpenTelemetry;
+using Cluster = Proto.Cluster.Cluster;
 
 namespace Backend.Hubs;
 
@@ -14,13 +16,15 @@ public class EventsHub : Hub
     private readonly Cluster _cluster;
     private readonly IHubContext<EventsHub> _eventsHubContext;
     private readonly ILogger<EventsHub> _logger;
+    private readonly MapGrid _mapGrid;
     private readonly IRootContext _senderContext;
 
-    public EventsHub(Cluster cluster, IHubContext<EventsHub> eventsHubContext, ILogger<EventsHub> logger)
+    public EventsHub(Cluster cluster, IHubContext<EventsHub> eventsHubContext, ILogger<EventsHub> logger, MapGrid mapGrid)
     {
         _cluster = cluster;
         _senderContext = cluster.System.Root.WithTracing();
         _logger = logger;
+        _mapGrid = mapGrid;
 
         // since the Hub is scoped per request, we need the IHubContext to be able to
         // push messages from the User actor
@@ -41,12 +45,13 @@ public class EventsHub : Hub
         var connectionId = Context.ConnectionId;
         UserActorPid = _cluster.System.Root.Spawn(
             Props.FromProducer(() => new UserActor(
+                    Context.ConnectionId,
                     batch => SendPositionBatch(connectionId, batch),
-                    notification => SendNotification(connectionId, notification)
+                    notification => SendNotification(connectionId, notification),
+                    _mapGrid
                 ))
                 .WithTracing()
         );
-
         return Task.CompletedTask;
     }
 
@@ -64,14 +69,13 @@ public class EventsHub : Hub
 
         if (UserActorPid != null)
         {
-            _senderContext.Send(UserActorPid, new UpdateViewport
-            {
-                Viewport = new Viewport
+            _senderContext.Send(UserActorPid, new UpdateViewport(
+                new Viewport
                 {
                     SouthWest = new GeoPoint(swLng, swLat),
                     NorthEast = new GeoPoint(neLng, neLat)
                 }
-            });
+            ));
         }
 
         return Task.CompletedTask;
@@ -120,12 +124,15 @@ public class EventsHub : Hub
         }
     }
 
-    public override async Task OnDisconnectedAsync(Exception? _)
+    public override Task OnDisconnectedAsync(Exception? _)
     {
-        _logger.LogDebug("Client {ClientId} disconnected", Context.ConnectionId);
+        _logger.LogInformation("Client {ClientId} disconnected", Context.ConnectionId);
         RealtimeMapMetrics.SignalRConnections.ChangeBy(-1);
 
-        if(UserActorPid != null)
-            await _cluster.System.Root.StopAsync(UserActorPid);
+
+        if (UserActorPid != null)
+            _cluster.System.Root.Send(UserActorPid, new DisconnectUser());
+
+        return Task.CompletedTask;
     }
 }

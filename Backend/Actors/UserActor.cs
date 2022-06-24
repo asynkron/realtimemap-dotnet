@@ -1,3 +1,6 @@
+using Backend.Models;
+using Proto.Cluster.PubSub;
+
 namespace Backend.Actors;
 
 public delegate Task SendPositionBatch(PositionBatch batch);
@@ -6,19 +9,28 @@ public delegate Task SendNotification(Notification notification);
 
 public class UserActor : IActor
 {
+    private static readonly ILogger Logger = Log.CreateLogger<UserActor>();
+    
     const int PositionBatchSize = 10;
 
+    private readonly string _id;
     private readonly SendPositionBatch _sendPositionBatch;
     private readonly SendNotification _sendNotification;
+    private readonly MapGrid _mapGrid;
     private readonly Viewport _viewport;
     private readonly List<Position> _positions = new(PositionBatchSize);
-    private EventStreamSubscription<object>? _notificationSubscription;
-    private EventStreamSubscription<object>? _positionSubscription;
+    private string[] _subscribedTopics = {};
 
-    public UserActor(SendPositionBatch sendPositionBatch, SendNotification sendNotification)
+    public UserActor(
+        string id,
+        SendPositionBatch sendPositionBatch, 
+        SendNotification sendNotification, 
+        MapGrid mapGrid)
     {
+        _id = id;
         _sendPositionBatch = sendPositionBatch;
         _sendNotification = sendNotification;
+        _mapGrid = mapGrid;
         _viewport = new Viewport();
     }
 
@@ -27,7 +39,7 @@ public class UserActor : IActor
         switch (context.Message)
         {
             case Started:
-                SubscribeToEvents(context.System, context.Self);
+                await SubscribeToNotifications(context);
                 break;
 
             case Position position:
@@ -40,34 +52,58 @@ public class UserActor : IActor
 
             case UpdateViewport updateViewport:
                 _viewport.MergeFrom(updateViewport.Viewport);
+                await SubscribeViewportPositions(context);
                 break;
 
-            case Stopping:
-                UnsubscribeEvents(context);
+            case DisconnectUser:
+                // make sure to unsubscribe first
+                // then put PoisonPill at the end of the mailbox
+                // any messages delivered by the topic that are currently in the mailbox
+                // will still be processed gracefully before shutting down
+                await UnsubscribeViewportPositions(context);
+                await UnsubscribeFromNotifications(context);
+                
+                context.Poison(context.Self);
                 break;
         }
     }
 
-
-    private void SubscribeToEvents(ActorSystem system, PID self)
+    private async Task SubscribeViewportPositions(IContext context)
     {
-        // do not try to process the events in the handler, send to self instead
-        // to avoid concurrency issues
+        var viewportTopics = _mapGrid.TopicsFromViewport(_viewport);
+        
+        var newTopics = viewportTopics.Except(_subscribedTopics).ToArray();
+        var subscribeTasks = newTopics.Select(t => (Task)context.Cluster().Subscribe(t, context.Self)).ToArray();
 
-        _notificationSubscription =
-            system.EventStream.Subscribe<Notification>(
-                notification => system.Root.Send(self, notification));
-        _positionSubscription =
-            system.EventStream.Subscribe<Position>(
-                position => system.Root.Send(self, position));
+        var topicsToUnsubscribe = _subscribedTopics.Except(viewportTopics).ToArray();
+        var unsubscribeTasks = topicsToUnsubscribe.Select(t => (Task)context.Cluster().Unsubscribe(t, context.Self)).ToArray();
+        
+        Logger.LogDebug("User {UserId} subscribed to {NewTopics} and unsubscribed from {UnsubscribedTopics}",
+            _id, newTopics, topicsToUnsubscribe);
+        
+        await Task.WhenAll(subscribeTasks.Concat(unsubscribeTasks));
+        
+        _subscribedTopics = viewportTopics;
+    }
+    
+    private async Task UnsubscribeViewportPositions(IContext context)
+    {
+        var unsubscribeTasks = _subscribedTopics.Select(t => (Task)context.Cluster().Unsubscribe(t, context.Self)).ToArray();
+
+        Logger.LogDebug("User {UserId} unsubscribed from {UnsubscribedTopics}", _id, _subscribedTopics);
+        
+        await Task.WhenAll(unsubscribeTasks);
+        _subscribedTopics = Array.Empty<string>();
     }
 
-    private void UnsubscribeEvents(IContext context)
+    private async Task SubscribeToNotifications(IContext context)
     {
-        context.System.EventStream.Unsubscribe(_positionSubscription);
-        _positionSubscription = null;
-        context.System.EventStream.Unsubscribe(_notificationSubscription);
-        _notificationSubscription = null;
+        await context.Cluster().Subscribe("notifications", context.Self);
+    }
+
+    private async Task UnsubscribeFromNotifications(IContext context)
+    {
+        await context.Cluster().Unsubscribe("notifications", context.Self);
     }
 
 
@@ -78,14 +114,13 @@ public class UserActor : IActor
             _positions.Add(position);
             if (_positions.Count >= PositionBatchSize)
             {
-                await _sendPositionBatch(new PositionBatch { Positions = { _positions } });
+                await _sendPositionBatch(new PositionBatch {Positions = {_positions}});
                 _positions.Clear();
             }
         }
     }
 }
 
-public class UpdateViewport
-{
-    public Viewport? Viewport { get; init; }
-}
+public record UpdateViewport(Viewport Viewport);
+
+public record DisconnectUser;

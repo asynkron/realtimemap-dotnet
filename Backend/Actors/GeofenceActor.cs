@@ -1,4 +1,5 @@
 ﻿using Backend.Models;
+using Proto.Cluster.PubSub;
 
 namespace Backend.Actors;
 
@@ -6,15 +7,15 @@ public class GeofenceActor : IActor
 {
     private readonly string _organizationName;
     private readonly CircularGeofence _circularGeofence;
-    private readonly Cluster _cluster;
     private readonly HashSet<string> _vehiclesInZone;
+    private readonly IPublisher _publisher;
 
     public GeofenceActor(string organizationName, CircularGeofence circularGeofence, Cluster cluster)
     {
         _organizationName = organizationName;
         _circularGeofence = circularGeofence;
-        _cluster = cluster;
         _vehiclesInZone = new HashSet<string>();
+        _publisher = cluster.Publisher();
     }
         
     public Task ReceiveAsync(IContext context)
@@ -30,7 +31,7 @@ public class GeofenceActor : IActor
                     if (!vehicleAlreadyInZone)
                     {
                         _vehiclesInZone.Add(position.VehicleId);
-                        _cluster.MemberList.BroadcastEvent(new Notification
+                        _ = _publisher.Publish("notifications", new Notification
                         {
                             VehicleId = position.VehicleId,
                             OrgId = position.OrgId,
@@ -45,7 +46,7 @@ public class GeofenceActor : IActor
                     if (vehicleAlreadyInZone)
                     {
                         _vehiclesInZone.Remove(position.VehicleId);
-                        _cluster.MemberList.BroadcastEvent(new Notification
+                        _ = _publisher.Publish("notifications", new Notification
                         {
                             VehicleId = position.VehicleId,
                             OrgId = position.OrgId,

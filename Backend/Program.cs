@@ -3,6 +3,7 @@ using Backend.Api;
 using Backend.Hubs;
 using Backend.Infrastructure.Metrics;
 using Backend.Infrastructure.Tracing;
+using Backend.Models;
 using Backend.MQTT;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -24,6 +25,9 @@ builder.Services.AddSignalR();
 builder.Services.AddRealtimeMapProtoActor();
 builder.Services.AddProtoActorDashboard();
 builder.Services.AddHostedService<MqttIngress>();
+
+// add map grid for Helsinki region
+builder.Services.AddSingleton(_ => new MapGrid(0.2, 60.0, 24.4, 60.6, 25.6));
 
 var app = builder.Build();
 

@@ -1,16 +1,20 @@
+using Backend.Models;
+using Proto.Cluster.PubSub;
 using Proto.OpenTelemetry;
 
 namespace Backend.Actors;
 
 public class VehicleActor : VehicleActorBase
 {
+    private readonly MapGrid _mapGrid;
     private readonly VehiclePositionHistory _positionsHistory;
     private readonly IRootContext _senderContext;
 
     private long _lastPositionUpdateTimestamp;
 
-    public VehicleActor(IContext context) : base(context)
+    public VehicleActor(IContext context, MapGrid mapGrid) : base(context)
     {
+        _mapGrid = mapGrid;
         _positionsHistory = new VehiclePositionHistory();
         _senderContext = Context.System.Root.WithTracing();
     }
@@ -25,8 +29,13 @@ public class VehicleActor : VehicleActorBase
                 .GetOrganizationActor(position.OrgId)
                 .OnPosition(position, _senderContext, CancellationTokens.FromSeconds(1));
 
-            // broadcast event on all cluster members eventstream
-            Cluster.MemberList.BroadcastEvent(position);
+            // broadcast to any viewport that watches this area on the map
+            var topic = _mapGrid.TopicFromPosition(position);
+            if (topic != null)
+            {
+                var producer = SharedProducers.GetProducer(Cluster, topic);
+                _ = producer.ProduceAsync(position);
+            }
 
             _lastPositionUpdateTimestamp = position.Timestamp;
         }
