@@ -2,6 +2,11 @@
 
 services:
   
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+  
   loki: 
     image: grafana/loki:2.4.1
     ports:

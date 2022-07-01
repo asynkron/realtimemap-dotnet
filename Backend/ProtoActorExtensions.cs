@@ -1,16 +1,20 @@
 ﻿using Backend.Actors;
+using Backend.Infrastructure.PubSub;
 using Google.Protobuf.WellKnownTypes;
 using MudBlazor.Services;
 using Proto.Cluster.Cache;
 using Proto.Cluster.Dashboard;
 using Proto.Cluster.Kubernetes;
 using Proto.Cluster.Partition;
+using Proto.Cluster.PubSub;
 using Proto.Cluster.Testing;
 using Proto.DependencyInjection;
 using Proto.OpenTelemetry;
 using Proto.Remote;
 using Proto.Remote.GrpcNet;
 using Proto.Remote.Healthchecks;
+using Proto.Utils;
+using StackExchange.Redis;
 
 namespace Backend;
 
@@ -53,6 +57,11 @@ public static class ProtoActorExtensions
                     ActivatorUtilities.CreateInstance<OrganizationActor>(provider, c)))
                 .WithTracing();
 
+            IKeyValueStore<Subscribers> kvStore =
+                config["ProtoActor:PubSub:SubscribersStorageType"] == "Redis"
+                    ? GetRedisSubscribersStore(config)
+                    : new InMemoryKeyValueStore();
+
             var (remoteConfig, clusterProvider) = ConfigureClustering(config);
 
             system
@@ -60,6 +69,8 @@ public static class ProtoActorExtensions
                 .WithRemote(remoteConfig)
                 .WithCluster(ClusterConfig
                     .Setup(clusterName, clusterProvider, new PartitionIdentityLookup())
+                    // explicit topic actor registration is needed to provide a key value store implementation
+                    .WithClusterKind(TopicActor.Kind, Props.FromProducer(() => new TopicActor(kvStore)))
                     .WithClusterKind("VehicleActor", vehicleProps)
                     .WithClusterKind("OrganizationActor", organizationProps)
                 )
@@ -76,6 +87,13 @@ public static class ProtoActorExtensions
         services
             .AddHealthChecks()
             .AddCheck<ActorSystemHealthCheck>("actor-system-health");
+    }
+
+    private static RedisKeyValueStore GetRedisSubscribersStore(IConfiguration config)
+    {
+        var multiplexer = ConnectionMultiplexer.Connect(config["ProtoActor:PubSub:RedisConnectionString"]);
+        var db = multiplexer.GetDatabase();
+        return new RedisKeyValueStore(db, config.GetValue<int>("ProtoActor:PubSub:RedisMaxConcurrency"));
     }
 
     public static void AddProtoActorDashboard(this IServiceCollection services)

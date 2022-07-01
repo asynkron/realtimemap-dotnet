@@ -63,7 +63,7 @@ public class UserActor : IActor
                 await UnsubscribeViewportPositions(context);
                 await UnsubscribeFromNotifications(context);
                 
-                context.Poison(context.Self);
+                context.Poison(context.Self); // do not try to await PoisonAsync, this will deadlock the actor!
                 break;
         }
     }

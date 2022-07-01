@@ -64,7 +64,7 @@ public class EventsHub : Hub
         activity?.SetTag("viewport", $"({swLat}, {swLng}),({neLat}, {neLng})");
         activity?.SetTag("connection.id", Context.ConnectionId);
 
-        _logger.LogInformation("Client {ClientId} setting viewport to ({SWLat}, {SWLng}),({NELat}, {NELng})",
+        _logger.LogDebug("Client {ClientId} setting viewport to ({SWLat}, {SWLng}),({NELat}, {NELng})",
             Context.ConnectionId, swLat, swLng, neLat, neLng);
 
         if (UserActorPid != null)

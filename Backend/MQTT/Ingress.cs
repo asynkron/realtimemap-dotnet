@@ -37,7 +37,7 @@ public class MqttIngress : IHostedService
             : sharedSubscriptionGroupName;
     }
 
-    private async Task ProcessHrtPositionUpdate(HrtPositionUpdate hrtPositionUpdate)
+    private Task ProcessHrtPositionUpdate(HrtPositionUpdate hrtPositionUpdate)
     {
         var vehicleId = $"{hrtPositionUpdate.OperatorId}.{hrtPositionUpdate.VehicleNumber}";
 
@@ -53,12 +53,14 @@ public class MqttIngress : IHostedService
             Speed = hrtPositionUpdate.Payload.Spd.GetValueOrDefault()
         };
 
-        await _cluster
+        _ = _cluster
             .GetVehicleActor(vehicleId)
             .OnPosition(position, _senderContext, CancellationTokens.FromSeconds(1));
 
         RealtimeMapMetrics.MqttMessageLeadTime.Record(
             (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - position.Timestamp) / 1000.0);
+        
+        return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
