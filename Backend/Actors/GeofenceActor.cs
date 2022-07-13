@@ -18,7 +18,7 @@ public class GeofenceActor : IActor
         _publisher = cluster.Publisher();
     }
         
-    public Task ReceiveAsync(IContext context)
+    public async Task ReceiveAsync(IContext context)
     {
         switch (context.Message)
         {
@@ -31,7 +31,7 @@ public class GeofenceActor : IActor
                     if (!vehicleAlreadyInZone)
                     {
                         _vehiclesInZone.Add(position.VehicleId);
-                        _ = _publisher.Publish("notifications", new Notification
+                        await _publisher.Publish("notifications", new Notification
                         {
                             VehicleId = position.VehicleId,
                             OrgId = position.OrgId,
@@ -46,7 +46,7 @@ public class GeofenceActor : IActor
                     if (vehicleAlreadyInZone)
                     {
                         _vehiclesInZone.Remove(position.VehicleId);
-                        _ = _publisher.Publish("notifications", new Notification
+                        await _publisher.Publish("notifications", new Notification
                         {
                             VehicleId = position.VehicleId,
                             OrgId = position.OrgId,
@@ -76,7 +76,5 @@ public class GeofenceActor : IActor
                 break;
             }
         }
-
-        return Task.CompletedTask;
     }
 }

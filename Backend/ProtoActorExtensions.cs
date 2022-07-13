@@ -136,6 +136,8 @@ public static class ProtoActorExtensions
     static (GrpcNetRemoteConfig, IClusterProvider) ConfigureForLocalhost()
         => (GrpcNetRemoteConfig
                 .BindToLocalhost()
+                .WithProtoMessages(EmptyReflection.Descriptor)
+                .WithProtoMessages(MessagesReflection.Descriptor)
                 .WithRemoteDiagnostics(true), // required by proto.actor dashboard
             new TestProvider(new TestProviderOptions(), new InMemAgent()));
 }

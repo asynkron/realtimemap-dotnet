@@ -54,16 +54,9 @@ public class UserActor : IActor
                 _viewport.MergeFrom(updateViewport.Viewport);
                 await SubscribeViewportPositions(context);
                 break;
-
-            case DisconnectUser:
-                // make sure to unsubscribe first
-                // then put PoisonPill at the end of the mailbox
-                // any messages delivered by the topic that are currently in the mailbox
-                // will still be processed gracefully before shutting down
-                await UnsubscribeViewportPositions(context);
-                await UnsubscribeFromNotifications(context);
-                
-                context.Poison(context.Self); // do not try to await PoisonAsync, this will deadlock the actor!
+            
+            case Stopping:
+                await Task.WhenAll(UnsubscribeViewportPositions(context), UnsubscribeFromNotifications(context));
                 break;
         }
     }
@@ -122,5 +115,3 @@ public class UserActor : IActor
 }
 
 public record UpdateViewport(Viewport Viewport);
-
-public record DisconnectUser;

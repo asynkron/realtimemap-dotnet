@@ -27,6 +27,7 @@ export interface HubConnection {
   onPositions(callback: (positions: PositionsDto) => void);
   clearPositionsCallback();
   onNotification(callback: (notification: NotificationDto) => void);
+  onReconnected(callback: () => void);
   clearNotificationCallback();
   disconnect(): Promise<void>;
 }
@@ -39,13 +40,13 @@ export const connectToHub = async (): Promise<HubConnection> => {
     .withAutomaticReconnect()
     .build();
 
-  console.log('connecting');
-  await connection.start();
-  console.log('connected');
-
   connection.onclose(() => {
     console.log('connection closed');
   });
+
+  console.log('connecting');
+  await connection.start();
+  console.log('connected');
 
   return {
     async setViewport(
@@ -71,6 +72,10 @@ export const connectToHub = async (): Promise<HubConnection> => {
       connection.on("notification", (notification: NotificationDto) => {
         callback(notification);
       });
+    },
+
+    onReconnected(callback: () => void) {
+      connection.onreconnected(callback);
     },
 
     clearNotificationCallback() {

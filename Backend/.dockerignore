@@ -1,2 +1,8 @@
-bin
-obj
+**/bin
+**/obj
+**/node_modules
+**/.git
+**/.idea
+**/.vscode
+**/examples
+**/tests

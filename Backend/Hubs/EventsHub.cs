@@ -124,15 +124,13 @@ public class EventsHub : Hub
         }
     }
 
-    public override Task OnDisconnectedAsync(Exception? _)
+    public override async Task OnDisconnectedAsync(Exception? _)
     {
         _logger.LogInformation("Client {ClientId} disconnected", Context.ConnectionId);
         RealtimeMapMetrics.SignalRConnections.ChangeBy(-1);
 
 
         if (UserActorPid != null)
-            _cluster.System.Root.Send(UserActorPid, new DisconnectUser());
-
-        return Task.CompletedTask;
+            await _cluster.System.Root.PoisonAsync(UserActorPid);
     }
 }

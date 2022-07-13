@@ -14,48 +14,51 @@ using Serilog.Core;
 using Serilog.Events;
 using Log = Serilog.Log;
 
-var builder = WebApplication.CreateBuilder(args);
-
-ConfigureLogging(builder);
-ConfigureTracing(builder);
-ConfigureMetrics(builder);
-
-builder.Services.AddControllers();
-builder.Services.AddSignalR();
-builder.Services.AddRealtimeMapProtoActor();
-builder.Services.AddProtoActorDashboard();
-builder.Services.AddHostedService<MqttIngress>();
-
-// add map grid for Helsinki region
-builder.Services.AddSingleton(_ => new MapGrid(0.2, 60.0, 24.4, 60.6, 25.6));
-
-var app = builder.Build();
-
-app.UseCors(b => b
-    .WithOrigins("http://localhost:8080")
-    .AllowAnyMethod()
-    .AllowAnyHeader()
-    .AllowCredentials()
-);
-
-// for hosting the proto actor dashboard behind a reverse proxy on a subpath
-if (builder.Configuration["PathBase"] != null)
-    app.UsePathBase(builder.Configuration["PathBase"]);
-
-app.UseHealthChecks("/healthz");
-app.UseRouting();
-app.MapHub<EventsHub>("/events");
-app.MapOrganizationApi();
-app.MapTrailApi();
-app.MapProtoActorDashboard();
-
 try
 {
+    var builder = WebApplication.CreateBuilder(args);
+
+    ConfigureLogging(builder);
+    ConfigureTracing(builder);
+    ConfigureMetrics(builder);
+
+    builder.Services.AddControllers();
+    builder.Services.AddSignalR();
+    builder.Services.AddRealtimeMapProtoActor();
+    builder.Services.AddProtoActorDashboard();
+    builder.Services.AddHostedService<MqttIngress>();
+
+    // add map grid for Helsinki region
+    builder.Services.AddSingleton(_ => new MapGrid(0.2, 60.0, 24.4, 60.6, 25.6));
+
+    var app = builder.Build();
+
+    app.UseCors(b => b
+        .WithOrigins("http://localhost:8080")
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials()
+    );
+
+    // for hosting the proto actor dashboard behind a reverse proxy on a subpath
+    if (builder.Configuration["PathBase"] != null)
+        app.UsePathBase(builder.Configuration["PathBase"]);
+
+    app.UseHealthChecks("/healthz");
+    app.UseRouting();
+    app.MapHub<EventsHub>("/events");
+    app.MapOrganizationApi();
+    app.MapTrailApi();
+    app.MapProtoActorDashboard();
+
+
     app.Run();
 }
 catch (Exception e)
 {
     Log.Fatal(e, "Application start-up failed");
+    Console.WriteLine("Application start-up failed");
+    Console.WriteLine(e);
 }
 finally
 {

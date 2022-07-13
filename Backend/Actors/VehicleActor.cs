@@ -19,7 +19,7 @@ public class VehicleActor : VehicleActorBase
         _senderContext = Context.System.Root.WithTracing();
     }
 
-    public override Task OnPosition(Position position)
+    public override async Task OnPosition(Position position)
     {
         _positionsHistory.Add(position);
 
@@ -34,13 +34,11 @@ public class VehicleActor : VehicleActorBase
             if (topic != null)
             {
                 var producer = SharedProducers.GetProducer(Cluster, topic);
-                _ = producer.ProduceAsync(position);
+                await producer.ProduceAsync(position);
             }
 
             _lastPositionUpdateTimestamp = position.Timestamp;
         }
-
-        return Task.CompletedTask;
     }
 
     public override Task<PositionBatch> GetPositionsHistory(GetPositionsHistoryRequest request)

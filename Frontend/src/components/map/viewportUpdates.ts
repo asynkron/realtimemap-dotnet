@@ -13,6 +13,10 @@ export const handleViewportUpdates = (map: mapboxgl.Map, connection: HubConnecti
     throttledUpdateViewport(map, connection);
   });
 
+  connection.onReconnected(() => {
+    setViewport(map, connection);
+  });
+
   setTimeout(
     () => setViewport(map, connection),
     500
