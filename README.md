@@ -47,7 +47,7 @@ Also check out the proto.actor dashboard (alpha) by navigating to [localhost:500
 
 ### Kubernetes
 
-In order to deploy to Kubernetes and use the Kubernetes cluster provider, see [Deploying to Kubernetes](deploying-to-kubernetes)
+In order to deploy to Kubernetes and use the Kubernetes cluster provider, see [Deploying to Kubernetes](#deploying-to-kubernetes)
 
 ## How does it work?
 
