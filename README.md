@@ -162,6 +162,8 @@ Each cell in the map becomes a topic in the pub sub system. Topics are implement
 
 Depending on the size and position of the user's viewport, it covers some of the grid cells. This means the user actor needs to subscribe to topics corresponding to the covered grid cells. In the example above, the user is subscribed to topics A1, B1, A2 and B2. When the viewport moves to cover different set of grid cells, the topics corresponding to grid cells that are no longer relevant need to be unsubscribed.
 
+On publishing side, the vehicle calculates what topic to publish to based on current position. Only the topic corresponding to the grid cell the vehicle is currently in receives the position.
+
 This way we're removing a bottleneck in the system that would otherwise force us to send all the messages to all the users, which is not a scalable approach. You could argue, that if the viewport covers all the grid cells, the problem occurs anyway. This is true, but we could prevent users from doing so, for example by stopping the real time updates when the viewport is over some size threshold.
 
 ### Getting vehicles currently in an organization's geofences
