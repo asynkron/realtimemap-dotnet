@@ -130,27 +130,39 @@ The workflow looks like this:
 
 So far we've only sent messages to and between actors. However, if we want to send notifications to actual users, we need to find a way to communicate between the actor system and the outside world. In this case, we'll use:
 1. SignalR to push notifications to users.
-1. Proto.Actor's ability to broadcast messages cluster-wide by means of the `EventStream`.
+1. Proto.Actor's (experimental) pub-sub feature to broadcast positions cluster-wide.
 
-[Learn more about EventStream here.](https://proto.actor/docs/eventstream/)
+[Learn more about PubSub here.](https://proto.actor/docs/cluster/pub-sub/)
 
 First we'll introduce the `UserActor`. It models the user's ability to view positions of vehicles and geofencing notifications. `UserActor` will be implemented as an actor (i.e. non-virtual actor).
 
 Quick info on actors:
 1. An actor's lifecycle is not managed, meaning we have to manually spawn and stop them.
-1. An actor will be hosted on the same node that spawned it. Like with child actors, this gives us performance benefits when communicating with an actor.
+1. An actor will be hosted on the same node that spawned it. Like with child actors, this gives us performance benefits when communicating with an actor. It also enables the actor to manage a local resource (SignalR connection).
 1. Since an actor lives in the same node (i.e. the same process), we can pass .NET references to it. It will come in handy in this feature.
 1. After spawning an actor, we receive its PID. Think of it as a reference to an actor: you can use it to communicate with it. Don't lose it!
 1. Technically, we can communicate with an actor using their PID from anywhere within the cluster. This functionality is not utilized in this app, though.
 
 The workflow looks like this:
 1. When user connects to SignalR hub, user actor is spawned to represent the connection. Delegates to send the positions and notifications back to the user are provided to the actor upon creation.
-1. When starting, the user actor subscribes to `Position` and `Notification` events being broadcasted through the `EventStream`. It also makes sure to unsubscribe when stopping.
+1. When starting, the user actor subscribes to `Position` and `Notification` events being broadcasted through the Pub-Sub mechanism. It also makes sure to unsubscribe when stopping.
 1. When user pans the map, updates of the viewport (south-west and north-east coords of the visible area on the map) are sent to the user actor through SignalR connection. The actor keeps track of the viewport to filter out positions.
-1. Geofence actor detects vehicle entering or leaving the geofencing zone. These events are broadcasted as `Notification` message to all cluster members and available through `EventStream` on each member. Same goes for `Position` events broadcasted from vehicle actor.
+1. Geofence actor detects vehicle entering or leaving the geofencing zone. These events are broadcasted as `Notification` message to all cluster members and available through PubSub. Same goes for `Position` events broadcasted from vehicle actor.
 1. When receiving a `Notification` message, user actor will push it to the user via SignalR connection. It will do the same with `Position` message provided it is within currently visible area on the map. The positions are sent in batches to improve performance.
 
-![viewport and event stream drawio](docs/viewport%20and%20event%20stream.drawio.png)
+![viewport and pub sub drawio](docs/viewport%20and%20pub%20sub.drawio.png)
+
+#### Map grid
+
+In the Realtime map sample we also showcase an optimization, which is possible thanks to the virtual actors and the pub-sub mechanism. Instead of broadcasting all positions to all users, we can limit the amount of positions sent to just the ones a particular user has interest in. For this purpose we overlay a "virtual grid" on top of the map.
+
+![map grid drawio](docs/map%20grid.drawio.png)
+
+Each cell in the map becomes a topic in the pub sub system. Topics are implemented as virtual actors so we don't need to create them in an explicit way. We can just start sending messages to them. In the example above we would have a topic for grid cell A1, B1, etc. 
+
+Depending on the size and position of the user's viewport, it covers some of the grid cells. This means the user actor needs to subscribe to topics corresponding to the covered grid cells. In the example above, the user is subscribed to topics A1, B1, A2 and B2. When the viewport moves to cover different set of grid cells, the topics corresponding to grid cells that are no longer relevant need to be unsubscribed.
+
+This way we're removing a bottleneck in the system that would otherwise force us to send all the messages to all the users, which is not a scalable approach. You could argue, that if the viewport covers all the grid cells, the problem occurs anyway. This is true, but we could prevent users from doing so, for example by stopping the real time updates when the viewport is over some size threshold.
 
 ### Getting vehicles currently in an organization's geofences
 
@@ -174,6 +186,7 @@ Prerequisites:
 * [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl) with configured connection to your cluster, e.g. Docker desktop
 * [Helm](https://helm.sh/docs/intro/install/)
 * [nginx ingress controller](https://kubernetes.github.io/ingress-nginx/deploy/) configured on your cluster
+* [Redis](https://github.com/bitnami/charts/tree/master/bitnami/redis) - used by the pub-sub mechanism
 
 The Realtime Map sample can be configured to use Kubernetes as cluster provider. The attached [chart](chart) contains definition for the deployment. You will need to supply some additional configuration, so create a new values file, e.g. `my-values.yaml` in the root directory of the sample. Example contents:
 
@@ -186,7 +199,8 @@ backend:
   config:
     # since all backend pods need to share MQTT subscription, 
     # generate a new guid and provide it here (no dashes)
-    sharedSubscriptionGroupName: SOME_GUID 
+    RealtimeMap__SharedSubscriptionGroupName: SOME_GUID
+    ProtoActor__PubSub__RedisConnectionString: realtimemap-redis-master:6379
 
 ingress:
   # specify localhost if on Docker Desktop, 
@@ -197,9 +211,7 @@ ingress:
 Create the namespace and deploy the sample:
 
 ```bash
-kubectl create namespace realtimemap
-
-helm upgrade --install -f my-values.yml --namespace realtimemap realtimemap ./chart
+helm upgrade --install -f my-values.yml --namespace realtimemap --create-namespace realtimemap ./chart
 ```
 
 *NOTE:* the chart creates a new role in the cluster with permissions to access Kubernetes API required for the cluster provider.
