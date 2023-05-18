@@ -16,7 +16,7 @@ public class VehicleActor : VehicleActorBase
     {
         _mapGrid = mapGrid;
         _positionsHistory = new VehiclePositionHistory();
-        _senderContext = Context.System.Root.WithTracing();
+        _senderContext = Context.System.Root;
     }
 
     public override async Task OnPosition(Position position)

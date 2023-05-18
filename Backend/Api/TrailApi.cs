@@ -14,7 +14,6 @@ public static class TrailApi
                 .GetVehicleActor(vehicleId)
                 .GetPositionsHistory(
                     new GetPositionsHistoryRequest(), 
-                    cluster.System.Root.WithTracing(),
                     CancellationToken.None);
 
             if (positionsHistory == null) return Results.StatusCode((int)HttpStatusCode.ServiceUnavailable); // timeout

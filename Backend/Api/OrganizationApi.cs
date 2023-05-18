@@ -29,7 +29,6 @@ public static class OrganizationApi
 
                 var geofences = await organizationActorClient.GetGeofences(
                     new GetGeofencesRequest {OrgId = id},
-                    cluster.System.Root.WithTracing(),
                     CancellationToken.None
                 );
 
