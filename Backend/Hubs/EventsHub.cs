@@ -22,7 +22,7 @@ public class EventsHub : Hub
     public EventsHub(Cluster cluster, IHubContext<EventsHub> eventsHubContext, ILogger<EventsHub> logger, MapGrid mapGrid)
     {
         _cluster = cluster;
-        _senderContext = cluster.System.Root.WithTracing();
+        _senderContext = cluster.System.Root;
         _logger = logger;
         _mapGrid = mapGrid;
 

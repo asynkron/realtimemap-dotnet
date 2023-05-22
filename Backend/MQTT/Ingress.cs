@@ -15,7 +15,7 @@ public class MqttIngress : IHostedService
     {
         _configuration = configuration;
         _cluster = cluster;
-        _senderContext = _cluster.System.Root.WithTracing();
+        _senderContext = _cluster.System.Root;
         _loggerFactory = loggerFactory;
     }
 

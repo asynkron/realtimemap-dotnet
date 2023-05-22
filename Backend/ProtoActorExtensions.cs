@@ -33,7 +33,8 @@ public static class ProtoActorExtensions
                 .Setup()
                 .WithMetrics()
                 .WithDeadLetterThrottleCount(3)
-                .WithDeadLetterThrottleInterval(TimeSpan.FromSeconds(1));
+                .WithDeadLetterThrottleInterval(TimeSpan.FromSeconds(1))
+                .WithConfigureRootContext(context => context.WithTracing());
 
             if (config.GetValue<bool>("ProtoActor:DeveloperLogging"))
             {
